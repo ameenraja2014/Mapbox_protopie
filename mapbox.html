@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Mapbox Basic Integration</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css" rel="stylesheet">
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
+  <script>
+    // Your JavaScript code will go here
+
+  // Replace 'YOUR_MAPBOX_ACCESS_TOKEN' with your actual Mapbox access token
+  mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdpeHh2dmowcjg2MmpyeXFna3NwNHBmIn0.UStI33vT8J1Ubup_1uSRvg';
+
+  const map = new mapboxgl.Map({
+    container: 'map', // container id
+    style: 'mapbox://styles/mapbox/streets-v11', // style URL
+    center: [-74.5, 40], // starting position [lng, lat]
+    zoom: 9 // starting zoom
+  });
+
+
+  async function getRoute(start, end) {
+    const query = await fetch(
+      `https://api.mapbox.com/directions/v5/mapbox/driving/${start.join(',')};${end.join(',')}?steps=true&geometries=geojson&access_token=${mapboxgl.accessToken}`,
+      { method: 'GET' }
+    );
+    const json = await query.json();
+    const data = json.routes[0];
+    const route = data.geometry.coordinates;
+
+    const geojson = {
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        type: 'LineString',
+        coordinates: route
+      }
+    };
+
+    if (map.getSource('route')) {
+      map.getSource('route').setData(geojson);
+    } else {
+      map.addLayer({
+        id: 'route',
+        type: 'line',
+        source: {
+          type: 'geojson',
+          data: geojson
+        },
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#3887be',
+          'line-width': 5,
+          'line-opacity': 0.75
+        }
+      });
+    }
+  }
+
+  map.on('load', () => {
+    const start = [-74.5, 40]; // Starting point [lng, lat]
+    const end = [-73.5, 41]; // Ending point [lng, lat]
+    getRoute(start, end);
+  });
+
+
+
+  </script>
+</body>
+</html>
