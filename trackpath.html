@@ -101,14 +101,12 @@ const animateCamera = async () => {
 
             const cameraOptions = {
                 center: pointOnRoute.geometry.coordinates,
-                zoom: map.getZoom(),
                 bearing: bearing,
                 pitch: cameraPitch,
-                around: pointOnRoute.geometry.coordinates,
-                offset: [0, -cameraAltitude]
+                zoom: map.getZoom(),
             };
 
-            map.easeTo(cameraOptions);
+            map.jumpTo(cameraOptions);
 
             requestAnimationFrame(animate);
         }
