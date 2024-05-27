@@ -39,6 +39,7 @@
             const end = [11.5820, 48.1351]; // Munich
             const route = await getRoute(start, end);
 
+            // Add the route to the map
             map.addSource('route', {
                 'type': 'geojson',
                 'data': {
@@ -70,42 +71,25 @@
         });
 
         function animateCamera(route) {
-            const startTime = performance.now();
-            const duration = 10000; // 10 seconds for the animation
+            let index = 0;
+            const duration = 1000000; // 10 seconds for the animation
+            const steps = route.length;
+            const stepTime = duration / steps;
 
-            function frame(time) {
-                const t = (time - startTime) / duration;
-
-                if (t < 1.0) {
-                    const segment = Math.floor(t * (route.length - 1));
-                    const segmentFraction = t * (route.length - 1) - segment;
-                    
-                    const start = route[segment];
-                    const end = route[segment + 1];
-
-                    const lng = start[0] + segmentFraction * (end[0] - start[0]);
-                    const lat = start[1] + segmentFraction * (end[1] - start[1]);
-
-                    // Update the camera position
+            function frame() {
+                if (index < steps) {
+                    const point = route[index];
                     map.setFreeCameraOptions({
-                        position: mapboxgl.MercatorCoordinate.fromLngLat([lng, lat], 500),
-                        lookAtPoint: [lng, lat]
+                        position: mapboxgl.MercatorCoordinate.fromLngLat(point, 500),
+                        lookAtPoint: point
                     });
-
-                    // Request the next frame of the animation
-                    requestAnimationFrame(frame);
-                } else {
-                    // Animation complete
-                    const finalPoint = route[route.length - 1];
-                    map.setFreeCameraOptions({
-                        position: mapboxgl.MercatorCoordinate.fromLngLat(finalPoint, 500),
-                        lookAtPoint: finalPoint
-                    });
+                    index++;
+                    setTimeout(frame, stepTime);
                 }
             }
 
             // Start the animation
-            requestAnimationFrame(frame);
+            frame();
         }
     </script>
 </body>
