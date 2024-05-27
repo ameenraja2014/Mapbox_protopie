@@ -19,11 +19,11 @@ body { margin: 0; padding: 0; }
     mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
     const map = new mapboxgl.Map({
         container: 'map',
-        zoom: 14,
+        zoom: 4,
         center: [11.4194, 48.7621], // Centering on Ingolstadt
         pitch: 65,
         bearing: 0,
-        style: 'mapbox://styles/mapbox/standard',
+        style: 'mapbox://styles/mapbox/outdoors-v12',
         interactive: false
     });
 
@@ -60,8 +60,8 @@ body { margin: 0; padding: 0; }
                 source: 'trace',
                 id: 'line',
                 paint: {
-                    'line-color': 'black',
-                    'line-width': 50
+                    'line-color': 'blue',
+                    'line-width': 20
                 },
                 layout: {
                     'line-cap': 'round',
@@ -69,9 +69,9 @@ body { margin: 0; padding: 0; }
                 }
             });
 
-            const animationDuration = 600000; // Duration for the animation
-            const cameraAltitude = 20; // Altitude of the camera
-            const cameraPitch = 90; // Tilt the camera by 45 degrees
+            const animationDuration = 60000; // Duration for the animation
+            const cameraAltitude = 200; // Altitude of the camera
+            const cameraPitch = 45; // Tilt the camera by 45 degrees
 
             let start;
 
@@ -95,7 +95,11 @@ body { margin: 0; padding: 0; }
 
                 const camera = map.getFreeCameraOptions();
                 camera.position = mapboxgl.MercatorCoordinate.fromLngLat({ lng: alongRoute[0], lat: alongRoute[1] }, cameraAltitude);
-                camera.pitch = cameraPitch;
+                
+                // Apply pitch and bearing
+                camera.setPitch(cameraPitch);
+                camera.setBearing(bearing);
+                
                 camera.lookAtPoint({ lng: nextPoint[0], lat: nextPoint[1] });
 
                 map.setFreeCameraOptions(camera);
