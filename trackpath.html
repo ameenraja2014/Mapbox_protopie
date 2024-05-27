@@ -21,7 +21,7 @@ body { margin: 0; padding: 0; }
         container: 'map',
         zoom: 14,
         center: [11.4194, 48.7621], // Centering on Ingolstadt
-        pitch: 45,
+        pitch: 65,
         bearing: 0,
         style: 'mapbox://styles/mapbox/standard',
         interactive: false
@@ -61,7 +61,7 @@ body { margin: 0; padding: 0; }
                 id: 'line',
                 paint: {
                     'line-color': 'blue',
-                    'line-width': 20
+                    'line-width': 5
                 },
                 layout: {
                     'line-cap': 'round',
@@ -69,7 +69,7 @@ body { margin: 0; padding: 0; }
                 }
             });
 
-            const animationDuration = 60000; // Duration for the animation
+            const animationDuration = 600000; // Duration for the animation
             const cameraAltitude = 200; // Altitude of the camera
             const cameraPitch = 45; // Tilt the camera by 45 degrees
 
@@ -81,7 +81,7 @@ body { margin: 0; padding: 0; }
 
                 if (phase > 1) {
                     setTimeout(() => {
-                        start = time;
+                        start = 0.0;
                     }, 1500);
                 }
 
@@ -96,13 +96,11 @@ body { margin: 0; padding: 0; }
                 const camera = map.getFreeCameraOptions();
                 camera.position = mapboxgl.MercatorCoordinate.fromLngLat({ lng: alongRoute[0], lat: alongRoute[1] }, cameraAltitude);
                 camera.pitch = cameraPitch;
-                camera.bearing = bearing;
-                
+                camera.lookAtPoint({ lng: nextPoint[0], lat: nextPoint[1] });
+
                 map.setFreeCameraOptions(camera);
 
-                if (phase < 1) {
-                    window.requestAnimationFrame(frame);
-                }
+                window.requestAnimationFrame(frame);
             }
 
             window.requestAnimationFrame(frame);
