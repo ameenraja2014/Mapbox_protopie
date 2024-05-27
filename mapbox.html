@@ -7,7 +7,7 @@
 <head>
     <meta charset="utf-8" />
     <title>Mapbox Navigation</title>
-    <meta name="viewport" content="width=device-width, initial-scale=100.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css' rel='stylesheet' />
@@ -29,13 +29,9 @@
             container: 'map',
             style: 'mapbox://styles/mapbox/standard', // Car dashboard-like style
             center: [11.4226, 48.766], // Starting position [lng, lat]
-            zoom: 100 // Starting zoom level
+            zoom: 15 // Starting zoom level
         });
 
-        map.on('style.load', () => {
-            map.setConfigProperty('basemap', 'lightPreset', 'night');
-        });
-        
         var directions = new MapboxDirections({
             accessToken: mapboxgl.accessToken,
             unit: 'metric',
@@ -45,33 +41,32 @@
 
         map.addControl(directions, 'top-left');
 
+        directions.setOrigin([11.4226, 48.766]); // Starting point [lng, lat]
+        directions.setDestination([11.5820, 48.1351]); // Ending point [lng, lat]
+
         var routeCoordinates = [];
 
-        // Event listener for adding destination
         directions.on('route', (e) => {
             const route = e.route[0].geometry.coordinates;
-            if (routeCoordinates.length > 1) {
-                animateRoute(route);
-            } else {
-                routeCoordinates = route;
-            }
+            animateRoute(route);
         });
 
-        // Function to animate the route based on turn-by-turn instructions
         function animateRoute(route) {
             let index = 0;
-            const duration = 2000000; // Duration of animation in milliseconds
+            const duration = 100; // Duration between each step in milliseconds
+            const zoomLevel = 15; // Constant zoom level
 
             function move() {
                 if (index < route.length) {
                     const point = route[index];
                     map.flyTo({
                         center: point,
-                        zoom: 2800, // Zoom level for street view
-                        speed: 0.1, // Speed of animation
-                        curve: 1, // Acceleration curve
-                        pitch: 90, // Pitch for top-down view
-                        bearing: getBearing(index, route), // Adjust bearing to face direction of movement
+                        zoom: zoomLevel,
+                        speed: 0.5,
+                        curve: 1,
+                        pitch: 45,
+                        bearing: getBearing(index, route),
+                        essential: true // this animation is considered essential with respect to prefers-reduced-motion
                     });
 
                     index++;
@@ -82,7 +77,6 @@
             move();
         }
 
-        // Function to calculate bearing between two points
         function getBearing(index, route) {
             if (index < route.length - 1) {
                 const current = route[index];
@@ -93,6 +87,10 @@
                 return map.getBearing();
             }
         }
+    </script>
+</body>
+</html>
+
     </script>
 </body>
 </html>
