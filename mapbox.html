@@ -23,7 +23,7 @@
 
         var map = new mapboxgl.Map({
             container: 'map',
-            style: 'mapbox://styles/mapbox/standard', // Car dashboard-like style
+            style: 'mapbox://styles/mapbox/standard',
             center: [11.4226, 48.766], // Starting position [lng, lat]
             zoom: 15 // Starting zoom level
         });
@@ -46,9 +46,8 @@
         });
 
         function animateRoute(route) {
-            const animationDuration = 80000;
-            const cameraAltitude = 400;
-            const routeDistance = turf.lineDistance(turf.lineString(route));
+            const animationDuration = 80000; // Duration of the entire animation in milliseconds
+            const cameraAltitude = 400; // Camera altitude
             let start;
 
             function frame(time) {
@@ -62,7 +61,7 @@
                     return;
                 }
 
-                const alongRoute = turf.along(turf.lineString(route), routeDistance * phase).geometry.coordinates;
+                const alongRoute = turf.along(turf.lineString(route), turf.lineDistance(turf.lineString(route)) * phase).geometry.coordinates;
                 const camera = map.getFreeCameraOptions();
 
                 camera.position = mapboxgl.MercatorCoordinate.fromLngLat(
@@ -71,7 +70,7 @@
                 );
 
                 if (route.length > 1) {
-                    const nextPoint = turf.along(turf.lineString(route), routeDistance * Math.min(phase + 0.01, 1)).geometry.coordinates;
+                    const nextPoint = turf.along(turf.lineString(route), turf.lineDistance(turf.lineString(route)) * Math.min(phase + 0.01, 1)).geometry.coordinates;
                     camera.lookAtPoint({ lng: nextPoint[0], lat: nextPoint[1] });
                 }
 
