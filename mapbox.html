@@ -1,15 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <title>Mapbox Navigation</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
-    <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css' rel='stylesheet' />
-    
-    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.js"></script>
-    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.css" type="text/css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapbox Path Animation</title>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.css' rel='stylesheet' />
     <style>
         body { margin: 0; padding: 0; }
         #map { position: absolute; top: 0; bottom: 0; width: 100%; }
@@ -17,51 +12,91 @@
 </head>
 <body>
     <div id="map"></div>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.js'></script>
     <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
 
-        var map = new mapboxgl.Map({
+        // Initialize the map
+        const map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/mapbox/streets-v11',
-            center: [11.4226, 48.766], // Starting position [lng, lat]
-            zoom: 14 // Starting zoom level
+            center: [11.4237, 48.7656], // Starting position [lng, lat]
+            zoom: 6
         });
 
-        var directions = new MapboxDirections({
-            accessToken: mapboxgl.accessToken,
-            unit: 'metric',
-            profile: 'mapbox/driving', // Driving directions
-            interactive: false // Disable direct interaction
+        // Define the coordinates for the path from Ingolstadt to Munich
+        const pathCoordinates = [
+            [11.4237, 48.7656], // Ingolstadt
+            [11.5820, 48.1351]  // Munich
+        ];
+
+        // Add the path to the map as a GeoJSON line
+        map.on('load', () => {
+            map.addSource('route', {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'properties': {},
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': pathCoordinates
+                    }
+                }
+            });
+
+            map.addLayer({
+                'id': 'route',
+                'type': 'line',
+                'source': 'route',
+                'layout': {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                },
+                'paint': {
+                    'line-color': '#888',
+                    'line-width': 6
+                }
+            });
+
+            // Animate the camera along the path
+            animateCamera(pathCoordinates);
         });
 
-        map.addControl(directions, 'top-left');
+        function animateCamera(coordinates) {
+            const start = coordinates[0];
+            const end = coordinates[1];
 
-        // Set a default route
-        directions.setOrigin([11.4226, 48.766]); // Starting point [lng, lat]
-        directions.setDestination([11.5820, 48.1351]); // Ending point [lng, lat]
+            const startTime = performance.now();
+            const duration = 10000; // 10 seconds for the animation
 
-        directions.on('route', (e) => {
-            const route = e.route[0].geometry.coordinates;
+            function frame(time) {
+                const t = (time - startTime) / duration;
 
-            let step = 0;
+                if (t < 1.0) {
+                    // Calculate the current position based on the easing function
+                    const lng = start[0] + t * (end[0] - start[0]);
+                    const lat = start[1] + t * (end[1] - start[1]);
 
-            function animateCamera() {
-                if (step < route.length) {
-                    const currentCoord = route[step];
-                    map.easeTo({
-                        center: currentCoord,
-                        zoom: 14,
-                        bearing: 0,
-                        pitch: 60,
-                        duration: 2000 // Adjust the duration as needed
+                    // Update the camera position
+                    map.setFreeCameraOptions({
+                        position: mapboxgl.MercatorCoordinate.fromLngLat([lng, lat], 500),
+                        lookAtPoint: [lng, lat]
                     });
-                    step++;
-                    setTimeout(animateCamera, 2000); // Adjust the interval as needed
+
+                    // Request the next frame of the animation
+                    requestAnimationFrame(frame);
+                } else {
+                    // Animation complete
+                    map.setFreeCameraOptions({
+                        position: mapboxgl.MercatorCoordinate.fromLngLat(end, 500),
+                        lookAtPoint: end
+                    });
                 }
             }
 
-            animateCamera();
-        });
+            // Start the animation
+            requestAnimationFrame(frame);
+        }
     </script>
 </body>
 </html>
