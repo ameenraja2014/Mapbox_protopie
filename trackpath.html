@@ -23,7 +23,7 @@ body { margin: 0; padding: 0; }
 mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
 const map = new mapboxgl.Map({
     container: 'map',
-    zoom: 4,
+    zoom: 14,
     center: [11.4194, 48.7621], // Centering on Ingolstadt
     pitch: 60, // Initial pitch for 3D effect
     bearing: 0,
@@ -73,7 +73,7 @@ const animateRoute = async () => {
             id: 'line',
             paint: {
                 'line-color': 'black',
-                'line-width': 20
+                'line-width': 5
             },
             layout: {
                 'line-cap': 'round',
@@ -81,8 +81,8 @@ const animateRoute = async () => {
             }
         });
 
-        const animationDuration = 300000; // Duration for the animation (30 seconds)
-        const cameraAltitude = 50; // Adjusted altitude for better 3D effect
+        const animationDuration = 30000; // Duration for the animation (30 seconds)
+        const cameraAltitude = 500; // Adjusted altitude for better 3D effect
         const cameraPitch = 45; // Adjusted pitch for better 3D effect
 
         let start;
@@ -103,18 +103,16 @@ const animateRoute = async () => {
                 turf.point(nextPoint)
             );
 
-            // Create a new camera options object
-            const camera = {
-                center: alongRoute,
-                zoom: map.getZoom(),
-                pitch: cameraPitch,
-                bearing: bearing,
-                around: nextPoint,
-                offset: [0, 0]
-            };
+            const cameraPosition = mapboxgl.MercatorCoordinate.fromLngLat({ lng: alongRoute[0], lat: alongRoute[1] }, cameraAltitude);
+            const lookAtPoint = { lng: nextPoint[0], lat: nextPoint[1] };
 
-            // Set the camera options
-            map.easeTo(camera);
+            const camera = map.getFreeCameraOptions();
+            camera.position = cameraPosition;
+            camera.lookAtPoint(lookAtPoint);
+            camera.pitch = cameraPitch;
+            camera.bearing = bearing;
+
+            map.setFreeCameraOptions(camera);
 
             window.requestAnimationFrame(frame);
         }
