@@ -67,8 +67,8 @@
                     const point = route[index];
                     map.flyTo({
                         center: point,
-                        zoom: 1800, // Zoom level for street view
-                        speed: 20, // Speed of animation
+                        zoom: 2800, // Zoom level for street view
+                        speed: 0.1, // Speed of animation
                         curve: 1, // Acceleration curve
                         pitch: 90, // Pitch for top-down view
                         bearing: getBearing(index, route), // Adjust bearing to face direction of movement
