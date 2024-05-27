@@ -21,7 +21,7 @@
             container: 'map',
             style: 'mapbox://styles/mapbox/streets-v11',
             center: [11.4237, 48.7656], // Starting position [lng, lat]
-            zoom: 1
+            zoom: 6
         });
 
         // Function to get the route from the Directions API
@@ -61,7 +61,7 @@
                 },
                 'paint': {
                     'line-color': '#888',
-                    'line-width': 10
+                    'line-width': 6
                 }
             });
 
@@ -70,25 +70,42 @@
         });
 
         function animateCamera(route) {
-            let index = 0;
-            const duration = 1000000; // 10 seconds for the animation
-            const steps = route.length;
-            const stepTime = duration / steps;
-            
-            function frame() {
-                if (index < steps) {
-                    const point = route[index];
+            const startTime = performance.now();
+            const duration = 10000; // 10 seconds for the animation
+
+            function frame(time) {
+                const t = (time - startTime) / duration;
+
+                if (t < 1.0) {
+                    const segment = Math.floor(t * (route.length - 1));
+                    const segmentFraction = t * (route.length - 1) - segment;
+                    
+                    const start = route[segment];
+                    const end = route[segment + 1];
+
+                    const lng = start[0] + segmentFraction * (end[0] - start[0]);
+                    const lat = start[1] + segmentFraction * (end[1] - start[1]);
+
+                    // Update the camera position
                     map.setFreeCameraOptions({
-                        position: mapboxgl.MercatorCoordinate.fromLngLat(point, 500),
-                        lookAtPoint: point
+                        position: mapboxgl.MercatorCoordinate.fromLngLat([lng, lat], 500),
+                        lookAtPoint: [lng, lat]
                     });
-                    index++;
-                    setTimeout(frame, stepTime);
+
+                    // Request the next frame of the animation
+                    requestAnimationFrame(frame);
+                } else {
+                    // Animation complete
+                    const finalPoint = route[route.length - 1];
+                    map.setFreeCameraOptions({
+                        position: mapboxgl.MercatorCoordinate.fromLngLat(finalPoint, 500),
+                        lookAtPoint: finalPoint
+                    });
                 }
             }
 
             // Start the animation
-            frame();
+            requestAnimationFrame(frame);
         }
     </script>
 </body>
