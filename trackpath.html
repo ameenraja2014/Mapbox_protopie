@@ -30,7 +30,7 @@ body { margin: 0; padding: 0; }
     // Fetch the route coordinates from Mapbox Directions API
     const getRoute = async () => {
         const query = await fetch(
-            `https://api.mapbox.com/directions/v5/mapbox/driving/11.4194,48.7621;11.4660,48.7650?geometries=geojson&access_token=${mapboxgl.accessToken}`,
+            `https://api.mapbox.com/directions/v5/mapbox/driving/11.4194,48.7621;11.4575,48.7876?geometries=geojson&access_token=${mapboxgl.accessToken}`,
             { method: 'GET' }
         );
         const json = await query.json();
@@ -43,14 +43,7 @@ body { margin: 0; padding: 0; }
         const route = await getRoute();
         const routeDistance = turf.lineDistance(turf.lineString(route));
 
-        map.on('style.load', () => {
-            map.addSource('mapbox-dem', {
-                'type': 'raster-dem',
-                'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-                'tileSize': 512,
-                'maxzoom': 14
-            });
-            map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+        map.on('load', () => {
             map.addSource('trace', {
                 type: 'geojson',
                 data: {
@@ -67,7 +60,7 @@ body { margin: 0; padding: 0; }
                 source: 'trace',
                 id: 'line',
                 paint: {
-                    'line-color': 'black',
+                    'line-color': 'blue',
                     'line-width': 5
                 },
                 layout: {
@@ -75,9 +68,7 @@ body { margin: 0; padding: 0; }
                     'line-join': 'round'
                 }
             });
-        });
 
-        map.on('load', () => {
             const animationDuration = 60000; // Duration for the animation
             const cameraAltitude = 200; // Altitude of the camera
 
