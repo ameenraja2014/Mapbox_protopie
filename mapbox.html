@@ -60,14 +60,14 @@
         // Function to animate the route based on turn-by-turn instructions
         function animateRoute(route) {
             let index = 0;
-            const duration = 2000; // Duration of animation in milliseconds
+            const duration = 2000000; // Duration of animation in milliseconds
 
             function move() {
                 if (index < route.length) {
                     const point = route[index];
                     map.flyTo({
                         center: point,
-                        zoom: 18, // Zoom level for street view
+                        zoom: 1800, // Zoom level for street view
                         speed: 0.5, // Speed of animation
                         curve: 1, // Acceleration curve
                         pitch: 90, // Pitch for top-down view
