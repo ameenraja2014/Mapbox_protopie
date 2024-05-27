@@ -21,9 +21,9 @@ body { margin: 0; padding: 0; }
         container: 'map',
         zoom: 14,
         center: [11.4194, 48.7621], // Centering on Ingolstadt
-        pitch: 60, // Slightly lower initial pitch
+        pitch: 75, // Higher initial pitch for 3D effect
         bearing: 0,
-        style: 'mapbox://styles/mapbox/streets-v11', // Updated to a valid style
+        style: 'mapbox://styles/mapbox/streets-v11', // Using a valid style
         interactive: false
     });
 
@@ -70,8 +70,8 @@ body { margin: 0; padding: 0; }
                 source: 'trace',
                 id: 'line',
                 paint: {
-                    'line-color': 'blue',
-                    'line-width': 5
+                    'line-color': 'black',
+                    'line-width': 20
                 },
                 layout: {
                     'line-cap': 'round',
@@ -80,7 +80,7 @@ body { margin: 0; padding: 0; }
             });
 
             const animationDuration = 60000; // Duration for the animation (60 seconds for testing)
-            const cameraAltitude = 100; // Lower altitude for more 3D effect
+            const cameraAltitude = 200; // Lower altitude for more 3D effect
             const cameraPitch = 75; // Higher pitch for a more dramatic 3D effect
 
             let start;
