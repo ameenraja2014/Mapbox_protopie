@@ -14,35 +14,45 @@ body { margin: 0; padding: 0; }
 <body>
 <div id="map"></div>
 
-<script src="https://docs.mapbox.com/mapbox-gl-js/assets/routes.js"></script>
 <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 <script>
-	mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
+    mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
     const map = new mapboxgl.Map({
         container: 'map',
-        zoom: 11.53,
-        center: [6.5615, 46.0598],
+        zoom: 14,
+        center: [11.4194, 48.7621], // Centering on Ingolstadt
         pitch: 65,
         bearing: -180,
-        // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
-        style: 'mapbox://styles/mapbox/outdoors-v12',
+        style: 'mapbox://styles/mapbox/standard',
         interactive: false
     });
 
-    // `routes` comes from https://docs.mapbox.com/mapbox-gl-js/assets/routes.js,
-    // which has properties that are in the shape of an array of arrays that correspond
-    //  to the `coordinates` property of a GeoJSON linestring, for example:
-    // [
-    //   [6.56158, 46.05989],
-    //   [6.56913, 46.05679],
-    //   ...
-    // ]
-    // this is the path the camera will look at
-    const targetRoute = routes.target;
-    // this is the path the camera will move along
-    const cameraRoute = routes.camera;
+    const ingolstadtToVillage = [
+        [11.4194, 48.7621],
+        [11.4200, 48.7615],
+        [11.4206, 48.7610],
+        [11.4212, 48.7605],
+        [11.4218, 48.7600],
+        [11.4224, 48.7595],
+        [11.4230, 48.7590],
+        [11.4236, 48.7585],
+        [11.4242, 48.7580],
+        [11.4248, 48.7575],
+        [11.4254, 48.7570],
+        [11.4260, 48.7565],
+        [11.4266, 48.7560],
+        [11.4272, 48.7555],
+        [11.4278, 48.7550],
+        [11.4284, 48.7545],
+        [11.4290, 48.7540],
+        [11.4296, 48.7535],
+        [11.4302, 48.7530],
+        [11.4308, 48.7525]
+    ];
 
-    // add terrain, sky, and line layers once the style has loaded
+    const targetRoute = ingolstadtToVillage;
+    const cameraRoute = ingolstadtToVillage;
+
     map.on('style.load', () => {
         map.addSource('mapbox-dem', {
             'type': 'raster-dem',
@@ -77,61 +87,30 @@ body { margin: 0; padding: 0; }
         });
     });
 
-    // wait for the terrain and sky to load before starting animation
     map.on('load', () => {
         const animationDuration = 80000;
         const cameraAltitude = 4000;
-        // get the overall distance of each route so we can interpolate along them
         const routeDistance = turf.lineDistance(turf.lineString(targetRoute));
-        const cameraRouteDistance = turf.lineDistance(
-            turf.lineString(cameraRoute)
-        );
+        const cameraRouteDistance = turf.lineDistance(turf.lineString(cameraRoute));
 
         let start;
 
         function frame(time) {
             if (!start) start = time;
-            // phase determines how far through the animation we are
             const phase = (time - start) / animationDuration;
 
-            // phase is normalized between 0 and 1
-            // when the animation is finished, reset start to loop the animation
             if (phase > 1) {
-                // wait 1.5 seconds before looping
                 setTimeout(() => {
                     start = 0.0;
                 }, 1500);
             }
 
-            // use the phase to get a point that is the appropriate distance along the route
-            // this approach syncs the camera and route positions ensuring they move
-            // at roughly equal rates even if they don't contain the same number of points
-            const alongRoute = turf.along(
-                turf.lineString(targetRoute),
-                routeDistance * phase
-            ).geometry.coordinates;
-
-            const alongCamera = turf.along(
-                turf.lineString(cameraRoute),
-                cameraRouteDistance * phase
-            ).geometry.coordinates;
+            const alongRoute = turf.along(turf.lineString(targetRoute), routeDistance * phase).geometry.coordinates;
+            const alongCamera = turf.along(turf.lineString(cameraRoute), cameraRouteDistance * phase).geometry.coordinates;
 
             const camera = map.getFreeCameraOptions();
-
-            // set the position and altitude of the camera
-            camera.position = mapboxgl.MercatorCoordinate.fromLngLat(
-                {
-                    lng: alongCamera[0],
-                    lat: alongCamera[1]
-                },
-                cameraAltitude
-            );
-
-            // tell the camera to look at a point along the route
-            camera.lookAtPoint({
-                lng: alongRoute[0],
-                lat: alongRoute[1]
-            });
+            camera.position = mapboxgl.MercatorCoordinate.fromLngLat({ lng: alongCamera[0], lat: alongCamera[1] }, cameraAltitude);
+            camera.lookAtPoint({ lng: alongRoute[0], lat: alongRoute[1] });
 
             map.setFreeCameraOptions(camera);
 
