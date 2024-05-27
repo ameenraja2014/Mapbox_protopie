@@ -2,84 +2,40 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>Mapbox Custom Style</title>
+    <title>Mapbox Navigation</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js'></script>
+      <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css' rel='stylesheet' />
 
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.js"></script>
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.css" type="text/css">
-
     <style>
         body { margin: 0; padding: 0; }
         #map { position: absolute; top: 0; bottom: 0; width: 100%; }
-        .mapboxgl-ctrl-directions.mapboxgl-ctrl { position: absolute; top: 0; left: 50px; }
     </style>
 </head>
 <body>
     <div id="map"></div>
     <script>
-        // Replace 'YOUR_MAPBOX_ACCESS_TOKEN' with your actual Mapbox access token
         mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
-
-        const map = new mapboxgl.Map({
-            container: 'map', // container ID
-            center: [11.4226, 48.7667], // starting position [lng, lat] (Ingolstadt)
-            zoom: 12, // starting zoom
-            pitch: 60, // pitch in degrees
-            bearing: -60, // bearing in degrees
-            style: 'mapbox://styles/mapbox/standard', // map style
+        var map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [11.4226, 48.7667],
+            zoom: 9
         });
 
         var directions = new MapboxDirections({
-            accessToken: mapboxgl.accessToken,
-            unit: 'metric',
-            profile: 'mapbox/driving', // Driving directions
-            interactive: false // Disable direct interaction
+            accessToken: mapboxgl.accessToken
         });
+        map.addControl(directions, 'top-left');
+    </script>
+</body>
+</html>
 
-        map.addControl(directions);
 
-        directions.on('route', (e) => {
-            const route = e.route[0].geometry.coordinates;
-            startNavigation(route);
-        });
 
-        function startNavigation(route) {
-            let index = 0;
 
-            function move() {
-                if (index < route.length) {
-                    const point = route[index];
-                    const bearing = index < route.length - 1 ? calculateBearing(route[index], route[index + 1]) : map.getBearing();
-                    const pitch = map.getPitch();
-
-                    map.flyTo({
-                        center: point,
-                        zoom: 18,
-                        bearing: bearing,
-                        pitch: pitch,
-                        speed: 1, // Adjust the speed as needed
-                        curve: 1, // Acceleration curve
-                    });
-
-                    index++;
-                    requestAnimationFrame(move);
-                }
-            }
-
-            move();
-        }
-
-        function calculateBearing(from, to) {
-            const [fromLng, fromLat] = from;
-            const [toLng, toLat] = to;
-            const x = Math.cos(toLat) * Math.sin(toLng - fromLng);
-            const y = Math.cos(fromLat) * Math.sin(toLat) - Math.sin(fromLat) * Math.cos(toLat) * Math.cos(toLng - fromLng);
-            const bearing = Math.atan2(x, y) * (180 / Math.PI);
-            return (bearing + 360) % 360;
-        }
     </script>
 </body>
 </html>
