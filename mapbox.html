@@ -26,12 +26,12 @@
         var map = new mapboxgl.Map({
             container: 'map',
             style: 'mapbox://styles/mapbox/standard', // Car dashboard-like style
-            center: [48.7667, 11.4226], // Starting position [lng, lat]
-            zoom: 13 // Starting zoom level
+            center: [11.4226, 48.766], // Starting position [lng, lat]
+            zoom: 100 // Starting zoom level
         });
 
         map.on('style.load', () => {
-        map.setConfigProperty('basemap', 'lightPreset', 'Night');
+        map.setConfigProperty('basemap', 'lightPreset', 'night');
         });
         
         var directions = new MapboxDirections({
