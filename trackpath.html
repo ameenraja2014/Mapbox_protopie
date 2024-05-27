@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>Animate the camera along a road route</title>
-<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=yes">
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
 <style>
@@ -119,7 +119,7 @@ body { margin: 0; padding: 0; }
 
                 const camera = map.getFreeCameraOptions();
                 camera.position = mapboxgl.MercatorCoordinate.fromLngLat({ lng: alongRoute[0], lat: alongRoute[1] }, cameraAltitude);
-                camera.pitch = cameraPitch;
+                camera.pitch = 45;
                 camera.bearing = bearing;
                 camera.lookAtPoint({ lng: nextPoint[0], lat: nextPoint[1] });
 
