@@ -43,6 +43,15 @@
 
         map.addControl(directions, 'top-left');
 
+        // Set the origin and destination
+        directions.setOrigin([-74.5, 40]); // Starting point [lng, lat]
+        directions.setDestination([-73.9851, 40.7589]); // Ending point [lng, lat]
+
+        var route = null;
+        directions.on('route', (e) => {
+            route = e.route[0].geometry.coordinates;
+        });
+
         // Remove default profile buttons
         map.on('load', function() {
             var controls = document.getElementsByClassName('mapboxgl-ctrl-group')[0];
@@ -59,15 +68,6 @@
                     startNavigation(route);
                 }
             });
-
-            // Set the origin and destination
-            directions.setOrigin([-74.5, 40]); // Starting point [lng, lat]
-            directions.setDestination([-73.9851, 40.7589]); // Ending point [lng, lat]
-        });
-
-        var route = null;
-        directions.on('route', (e) => {
-            route = e.route[0].geometry.coordinates;
         });
 
         // Function to simulate car movement along the route
@@ -78,11 +78,10 @@
 
             let index = 0;
             function move() {
-                marker.setLngLat(route[index]);
-                map.panTo(route[index]);
-                index++;
-
                 if (index < route.length) {
+                    marker.setLngLat(route[index]);
+                    map.panTo(route[index]);
+                    index++;
                     requestAnimationFrame(move);
                 }
             }
