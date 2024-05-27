@@ -83,7 +83,6 @@ const animateRoute = async () => {
 
         const animationDuration = 30000; // Duration for the animation (30 seconds)
         const cameraAltitude = 500; // Adjusted altitude for better 3D effect
-        const cameraPitch = 45; // Adjusted pitch for better 3D effect
 
         let start;
 
@@ -103,13 +102,16 @@ const animateRoute = async () => {
                 turf.point(nextPoint)
             );
 
+            // Calculate pitch based on the distance between current and next point
+            const pitch = calculatePitch(alongRoute, nextPoint);
+
             const cameraPosition = mapboxgl.MercatorCoordinate.fromLngLat({ lng: alongRoute[0], lat: alongRoute[1] }, cameraAltitude);
             const lookAtPoint = { lng: nextPoint[0], lat: nextPoint[1] };
 
             const camera = map.getFreeCameraOptions();
             camera.position = cameraPosition;
             camera.lookAtPoint(lookAtPoint);
-            camera.pitch = cameraPitch;
+            camera.pitch = pitch;
             camera.bearing = bearing;
 
             map.setFreeCameraOptions(camera);
@@ -120,6 +122,16 @@ const animateRoute = async () => {
         window.requestAnimationFrame(frame);
     });
 };
+
+// Function to calculate pitch based on the distance between current and next point
+function calculatePitch(currentPoint, nextPoint) {
+    const dx = nextPoint[0] - currentPoint[0];
+    const dy = nextPoint[1] - currentPoint[1];
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    // Adjust pitch based on distance, you can adjust this factor to your preference
+    const pitch = Math.atan2(100, distance) * (180 / Math.PI);
+    return pitch;
+}
 
 animateRoute();
 </script>
