@@ -1,106 +1,94 @@
-
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <title>Mapbox Navigation with Drone View</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <title>Mapbox Navigation with Drone View</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js'></script>
-  <link href='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css' rel='stylesheet' />
+  <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js'></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css' rel='stylesheet' />
 
-  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.js"></script>
-  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.css" type="text/css">
+  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.js"></script>
+  <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.css" type="text/css">
 
-  <style>
-    body { margin: 0; padding: 0; }
-    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
-  </style>
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+  </style>
 </head>
 <body>
-  <div id="map"></div>
-  <script>
-    mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg'; // Replace with your Mapbox access token
+  <div id="map"></div>
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg'; // Replace with your Mapbox access token
 
-    var map = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/mapbox/streets-v11', // Streets style
-      center: [11.433333, 48.766667], // Starting position (Ingolstadt)
-      zoom: 13 // Starting zoom level
-    });
+    var map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v11', // Streets style
+      center: [11.433333, 48.766667], // Starting position (Ingolstadt)
+      zoom: 13 // Starting zoom level
+    });
 
-    map.on('style.load', () => {
-      map.setConfigProperty('basemap', 'lightPreset', 'night');
-    });
-     
-    var directions = new MapboxDirections({
-      accessToken: mapboxgl.accessToken,
-      unit: 'metric',
-      profile: 'mapbox/driving', // Driving directions
-      interactive: false // Disable direct interaction
-    });
+    map.on('style.load', () => {
+      map.setConfigProperty('basemap', 'lightPreset', 'night');
+    });
 
-    map.addControl(directions, 'top-left');
+    var directions = new MapboxDirections({
+      accessToken: mapboxgl.accessToken,
+      unit: 'metric',
+      profile: 'mapbox/driving', // Driving directions
+      interactive: false // Disable direct interaction
+    });
 
-    var routeCoordinates = [];
+    map.addControl(directions, 'top-left');
 
-    // Event listener for adding destination
-    directions.on('route', (e) => {
-      const route = e.route[0].geometry.coordinates;
-      if (routeCoordinates.length > 1) {
-        animateRoute(route);
-      } else {
-        routeCoordinates.push(route[0]); // Store first destination
-      }
-    });
+    var routeCoordinates = [];
 
-    // Event listener for selecting second destination
+    // Event listener for selecting first destination
+    directions.on('route', (e) => {
+      const route = e.route[0].geometry.coordinates;
+      routeCoordinates.push(route[0]); // Store first destination
+    });
+
+    // Event listener for selecting second destination (and triggering animation)
     directions.on('clear', () => {
-      if (routeCoordinates.length === 1) {
-        // User cleared the route after selecting one destination
-        routeCoordinates = [];
-      } else if (routeCoordinates.length === 2) {
-        // User selected second destination, trigger animation
+      if (routeCoordinates.length === 2) {
         animateRoute(routeCoordinates);
         routeCoordinates = []; // Reset for next use
       }
     });
 
-    // Function to animate the route with drone view effect
-    function animateRoute(route) {
-      const instructions = directions.getRoute().legs[0].steps;
-      let index = 0;
-      const duration = 2000; // Duration of animation in milliseconds
+    // Function to animate the route with drone view effect
+    function animateRoute(route) {
+      const instructions = directions.getRoute().legs[0].steps;
+      let index = 0; // Reset index for each animation
+      const duration = 2000; // Duration of animation in milliseconds
 
-      function move() {
-        if (index < instructions.length) {
-          const instruction = instructions[index];
-          const point = route[instruction.maneuver.location_index];
-      
-      let pitch = 60; // Initial pitch for downward angle
+      function move() {
+        if (index < instructions.length) {
+          const instruction = instructions[index];
+          const point = route[instruction.maneuver.location_index];
 
-      // Adjust pitch dynamically based on progress (example):
-      pitch -= index / (instructions.length - 1) * 20; // Lower pitch as animation progresses
+          let pitch = 60; // Initial pitch for downward angle
 
-      map.flyTo({
-        center: point,
-        zoom: 18,
-        speed: 0.2,
-        curve: 1,
-        bearing: instruction.maneuver.bearing_after,
-        pitch: pitch
-      });
+          // Adjust pitch dynamically based on progress (example):
+          pitch -= index / (instructions.length - 1) * 20; // Lower pitch as animation progresses
 
-      index++;
-      setTimeout(move, duration);
+          map.flyTo({
+            center: point,
+            zoom: 18,
+            speed: 0.2,
+            curve: 1,
+            bearing: instruction.maneuver.bearing_after,
+            pitch: pitch
+          });
+
+          index++;
+          setTimeout(move, duration);
+        }
+      }
+
+      move();
     }
-  }
-
-  move();
-}
-  </script>
+  </script>
 </body>
 </html>
-
-
-
