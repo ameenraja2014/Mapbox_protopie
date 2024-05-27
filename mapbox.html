@@ -1,13 +1,17 @@
 // pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg
 
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapbox Road Route Animation</title>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css' rel='stylesheet' />
+    <meta charset="utf-8" />
+    <title>Mapbox Navigation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css' rel='stylesheet' />
+
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.css" type="text/css">
     <style>
         body { margin: 0; padding: 0; }
         #map { position: absolute; top: 0; bottom: 0; width: 100%; }
@@ -15,83 +19,53 @@
 </head>
 <body>
     <div id="map"></div>
-    <script src='https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js'></script>
     <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
 
-        // Initialize the map
-        const map = new mapboxgl.Map({
+        var map = new mapboxgl.Map({
             container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v11',
-            center: [11.4237, 48.7656], // Starting position [lng, lat]
-            zoom: 6
+            style: 'mapbox://styles/mapbox/standard', // Car dashboard-like style
+            center: [11.4226, 48.766], // Starting position [lng, lat]
+            zoom: 100 // Starting zoom level
         });
 
-        // Function to get the route from the Navigation API
-        async function getRoute(start, end) {
-            const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${start.join(',')};${end.join(',')}?steps=true&access_token=${mapboxgl.accessToken}`;
-            const response = await fetch(url);
-            const data = await response.json();
-            return data.routes[0].geometry.coordinates;
-        }
-
-        // Add the route to the map
-        map.on('load', async () => {
-            const start = [11.4237, 48.7656]; // Ingolstadt
-            const end = [11.5820, 48.1351]; // Munich
-            const route = await getRoute(start, end);
-
-            map.addSource('route', {
-                'type': 'geojson',
-                'data': {
-                    'type': 'Feature',
-                    'properties': {},
-                    'geometry': {
-                        'type': 'LineString',
-                        'coordinates': route
-                    }
-                }
-            });
-
-            map.addLayer({
-                'id': 'route',
-                'type': 'line',
-                'source': 'route',
-                'layout': {
-                    'line-join': 'round',
-                    'line-cap': 'round'
-                },
-                'paint': {
-                    'line-color': '#888',
-                    'line-width': 6
-                }
-            });
-
-            // Animate the camera along the route
-            animateCamera(route);
+        map.on('style.load', () => {
+            map.setConfigProperty('basemap', 'lightPreset', 'night');
         });
 
-        function animateCamera(route) {
-            const duration = 10000; // 10 seconds for the animation
+        var directions = new MapboxDirections({
+            accessToken: mapboxgl.accessToken,
+            unit: 'metric',
+            profile: 'mapbox/driving', // Driving directions
+            interactive: false // Disable direct interaction
+        });
+
+        map.addControl(directions, 'top-left');
+
+        // Set a default route
+        directions.setOrigin([11.4226, 48.766]); // Starting point [lng, lat]
+        directions.setDestination([11.5820, 48.1351]); // Ending point [lng, lat]
+
+        // Function to animate the camera along the route
+        function animateCamera() {
+            const route = directions.routes[0].geometry.coordinates;
+            const duration = 10000; // Animation duration in milliseconds
             const start = performance.now();
 
             function animate(time) {
                 const elapsed = time - start;
                 const t = Math.min(elapsed / duration, 1);
-                
-                const segmentIndex = Math.floor(t * (route.length - 1));
-                const segmentFraction = t * (route.length - 1) - segmentIndex;
 
-                const [startLng, startLat] = route[segmentIndex];
-                const [endLng, endLat] = route[segmentIndex + 1] || route[segmentIndex];
+                const index = Math.floor(t * (route.length - 1));
+                const segmentFraction = t * (route.length - 1) - index;
+
+                const [startLng, startLat] = route[index];
+                const [endLng, endLat] = route[index + 1] || route[index];
 
                 const lng = startLng + segmentFraction * (endLng - startLng);
                 const lat = startLat + segmentFraction * (endLat - startLat);
 
-                map.setFreeCameraOptions({
-                    position: mapboxgl.MercatorCoordinate.fromLngLat([lng, lat], 500),
-                    lookAtPoint: [lng, lat]
-                });
+                map.jumpTo({ center: [lng, lat], zoom: 8 });
 
                 if (t < 1) {
                     requestAnimationFrame(animate);
@@ -100,6 +74,9 @@
 
             requestAnimationFrame(animate);
         }
+
+        // Call the camera animation function
+        animateCamera();
     </script>
 </body>
 </html>
