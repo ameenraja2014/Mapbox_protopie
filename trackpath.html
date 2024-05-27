@@ -26,8 +26,8 @@ body { margin: 0; padding: 0; }
         container: 'map',
         zoom: 4,
         center: [11.4194, 48.7621], // Centering on Ingolstadt
-      //  pitch: 60, // Initial pitch for 3D effect
-      //  bearing: 0,
+        pitch: 60, // Initial pitch for 3D effect
+        bearing: 0,
         style: 'mapbox://styles/mapbox/standard',
         interactive: true
     });
@@ -119,7 +119,7 @@ body { margin: 0; padding: 0; }
 
                 const camera = map.getFreeCameraOptions();
                 camera.position = mapboxgl.MercatorCoordinate.fromLngLat({ lng: alongRoute[0], lat: alongRoute[1] }, cameraAltitude);
-                camera.pitch = 45;
+                camera.pitch = cameraPitch;
                 camera.bearing = bearing;
                 camera.lookAtPoint({ lng: nextPoint[0], lat: nextPoint[1] });
 
