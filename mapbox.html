@@ -21,14 +21,14 @@
 <body>
   <div id="map"></div>
   <script>
-    mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg'; 
-      // Replace 'your_access_token' with your actual Mapbox access token
+    mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg
+'; // Replace with your Mapbox access token
 
     var map = new mapboxgl.Map({
       container: 'map',
-      style: 'mapbox://styles/mapbox/standard', // Car dashboard-like style
-      center: [11.4226, 48.766], // Starting position [lng, lat]
-      zoom: 15 // Starting zoom level
+      style: 'mapbox://styles/mapbox/streets-v11', // Streets style
+      center: [11.433333, 48.766667], // Starting position (Ingolstadt)
+      zoom: 13 // Starting zoom level
     });
 
     map.on('style.load', () => {
@@ -52,9 +52,21 @@
       if (routeCoordinates.length > 1) {
         animateRoute(route);
       } else {
-        routeCoordinates = route;
+        routeCoordinates.push(route[0]); // Store first destination
       }
     });
+
+    // Event listener for selecting second destination
+    directions.on('clear', () => {
+      if (routeCoordinates.length === 1) {
+        // User cleared the route after selecting one destination
+        routeCoordinates = [];
+      } else if (routeCoordinates.length === 2) {
+        // User selected second destination, trigger animation
+        animateRoute(routeCoordinates);
+        routeCoordinates = []; // Reset for next use
+      }
+    });
 
     // Function to animate the route with drone view effect
     function animateRoute(route) {
@@ -92,7 +104,5 @@
 </body>
 </html>
 
-
-</html>
 
 
