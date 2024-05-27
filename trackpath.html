@@ -21,8 +21,8 @@ body { margin: 0; padding: 0; }
         container: 'map',
         zoom: 4,
         center: [11.4194, 48.7621], // Centering on Ingolstadt
-        pitch: 45,
-        bearing: 180,
+        pitch: -45,
+        bearing: 0,
         style: 'mapbox://styles/mapbox/standard',
         interactive: false
     });
@@ -69,7 +69,7 @@ body { margin: 0; padding: 0; }
                 }
             });
 
-            const animationDuration = 60000; // Duration for the animation
+            const animationDuration = 600000; // Duration for the animation
             const cameraAltitude = 20; // Altitude of the camera
 
             let start;
