@@ -10,6 +10,9 @@
     <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css' rel='stylesheet' />
 
+    <!-- Include FreeCamera plugin -->
+    <script src="https://unpkg.com/mapbox-gl-free-camera"></script>
+
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.js"></script>
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.css" type="text/css">
     <style>
@@ -26,7 +29,7 @@
             container: 'map',
             style: 'mapbox://styles/mapbox/standard', // Car dashboard-like style
             center: [11.4226, 48.766], // Starting position [lng, lat]
-            zoom: 10 // Starting zoom level
+            zoom: 13 // Starting zoom level
         });
 
         map.on('style.load', () => {
@@ -44,34 +47,36 @@
 
         // Set a default route
         directions.setOrigin([11.4226, 48.766]); // Starting point [lng, lat]
-        directions.setDestination([11.5820, 48.1351]); // Ending point [lng, lat]
+        directions.setDestination([11.5820, 48.1351 ]); // Ending point [lng, lat]
 
-        // Function to animate the camera along the route
-        function animateCamera() {
-            const route = directions.routes[0].geometry.coordinates;
-            const duration = 10000; // Animation duration in milliseconds
-            const start = performance.now();
+        // Smooth camera movement function
+        function animateCameraAlongRoute(route) {
+            var index = 0;
+            var duration = 5000; // Adjust this for the speed of the animation
 
-            function animate(time) {
-                const elapsed = time - start;
-                const t = Math.min(elapsed / duration, 1);
-
-                const index = Math.floor(t * (route.length - 1));
-                const [lng, lat] = route[index];
-
-                map.jumpTo({ center: [lng, lat], zoom: 8 });
-
-                if (t < 1) {
-                    requestAnimationFrame(animate);
+            function animate() {
+                if (index < route.length - 1) {
+                    var start = route[index];
+                    var end = route[index + 1];
+                    map.flyTo({
+                        center: start,
+                        duration: duration / (route.length - 1)
+                    });
+                    index++;
+                    setTimeout(animate, duration / (route.length - 1));
                 }
             }
 
-            requestAnimationFrame(animate);
+            animate();
         }
 
-        // Call the camera animation function
-        animateCamera();
+        // Get route coordinates and start animation
+        directions.on('route', function(e) {
+            if (e.route.length > 0) {
+                var route = e.route[0].geometry.coordinates;
+                animateCameraAlongRoute(route);
+            }
+        });
     </script>
 </body>
 </html>
-
