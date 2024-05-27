@@ -16,12 +16,10 @@
     <style>
         body { margin: 0; padding: 0; }
         #map { position: absolute; top: 0; bottom: 0; width: 100%; }
-        #fly-button { position: absolute; top: 10px; right: 10px; z-index: 1; }
     </style>
 </head>
 <body>
     <div id="map"></div>
-    <button id="fly-button" style="display: none;">Fly Along Route</button>
     <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
 
@@ -47,44 +45,32 @@
 
         var routeCoordinates = [];
 
-        // Function to add a destination
-        function addDestination(destination) {
-            routeCoordinates.push(destination);
-            if (routeCoordinates.length === 2) {
-                startNavigation(routeCoordinates);
-                document.getElementById('fly-button').style.display = 'block'; // Show the button
-            }
-        }
-
         // Event listener for adding destination
         directions.on('route', (e) => {
             const route = e.route[0].geometry.coordinates;
             if (routeCoordinates.length > 1) {
-                addDestination(routeCoordinates.pop());
+                animateRoute(route);
+            } else {
+                routeCoordinates = route;
             }
         });
 
-        // Button event listener for flying along the route
-        document.getElementById('fly-button').addEventListener('click', () => {
-            if (routeCoordinates.length > 1) {
-                startNavigation(routeCoordinates);
-            }
-        });
-
-        // Function to simulate car movement along the route
-        function startNavigation(route) {
+        // Function to animate the route based on turn-by-turn instructions
+        function animateRoute(route) {
+            const instructions = directions.getRoute().legs[0].steps;
             let index = 0;
-            const duration = 500; // Duration of animation in milliseconds
+            const duration = 2000; // Duration of animation in milliseconds
 
             function move() {
-                if (index < route.length) {
-                    const point = route[index];
+                if (index < instructions.length) {
+                    const instruction = instructions[index];
+                    const point = route[instruction.maneuver.location_index];
                     map.flyTo({
                         center: point,
                         zoom: 18, // Zoom level for street view
                         speed: 0.2, // Speed of animation
                         curve: 1, // Acceleration curve
-                        bearing: getBearing(index, route), // Adjust bearing to face direction of movement
+                        bearing: instruction.maneuver.bearing_after, // Adjust bearing to face direction of movement
                         pitch: 50 // Pitch for 3D perspective
                     });
 
@@ -95,20 +81,10 @@
 
             move();
         }
-
-        // Function to calculate bearing between two points
-        function getBearing(index, route) {
-            if (index < route.length - 1) {
-                const current = route[index];
-                const next = route[index + 1];
-                const bearing = Math.atan2(next[0] - current[0], next[1] - current[1]) * (180 / Math.PI);
-                return bearing;
-            } else {
-                return map.getBearing();
-            }
-        }
     </script>
 </body>
+</html>
+
 </html>
 
 
