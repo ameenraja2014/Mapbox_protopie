@@ -50,27 +50,22 @@ body { margin: 0; padding: 0; }
                     'type': 'Feature',
                     'properties': {},
                     'geometry': {
-                        'type': 'LineString',
+                        'type': 'Polygon',
                         'coordinates': route
                     }
                 }
             });
-            map.addLayer({
-                type: 'line',
-                source: 'trace',
-                id: 'line',
-                paint: {
-                    'line-color': 'black',
-                    'line-width': 10
-                },
-                layout: {
-                    'line-cap': 'round',
-                    'line-join': 'round'
-                }
-            });
+          map.addLayer({
+  id: 'my-line-layer',
+  source: 'vector-source',
+  'source-layer': 'road',
+  paint: {
+    'line-emissive-strength': 1
+  }
+});
 
-            const animationDuration = 60000; // Duration for the animation
-            const cameraAltitude = 200; // Altitude of the camera
+            const animationDuration = 600000; // Duration for the animation
+            const cameraAltitude = 2000; // Altitude of the camera
 
             let start;
 
