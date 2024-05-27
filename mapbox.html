@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>Mapbox Navigation</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
-    <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
-    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css' rel='stylesheet' />
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.js"></script>
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.css" type="text/css">
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 
     <style>
         body { margin: 0; padding: 0; }
@@ -17,70 +17,70 @@
     </style>
 </head>
 <body>
-<div id="map"></div>
-<script>
-    mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
+    <div id="map"></div>
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
 
-    var map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/standard', // Car dashboard-like style
-        center: [11.4226, 48.766], // Starting position [lng, lat]
-        zoom: 15 // Starting zoom level
-    });
+        var map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/standard', // Car dashboard-like style
+            center: [11.4226, 48.766], // Starting position [lng, lat]
+            zoom: 15 // Starting zoom level
+        });
 
-    var directions = new MapboxDirections({
-        accessToken: mapboxgl.accessToken,
-        unit: 'metric',
-        profile: 'mapbox/driving', // Driving directions
-        interactive: false // Disable direct interaction
-    });
+        var directions = new MapboxDirections({
+            accessToken: mapboxgl.accessToken,
+            unit: 'metric',
+            profile: 'mapbox/driving', // Driving directions
+            interactive: false // Disable direct interaction
+        });
 
-    map.addControl(directions, 'top-left');
+        map.addControl(directions, 'top-left');
 
-    directions.setOrigin([11.4226, 48.766]); // Starting point [lng, lat]
-    directions.setDestination([11.5820, 48.1351]); // Ending point [lng, lat]
+        directions.setOrigin([11.4226, 48.766]); // Starting point [lng, lat]
+        directions.setDestination([11.5820, 48.1351]); // Ending point [lng, lat]
 
-    directions.on('route', (e) => {
-        const route = e.route[0].geometry.coordinates;
-        animateRoute(route);
-    });
+        directions.on('route', (e) => {
+            const route = e.route[0].geometry.coordinates;
+            animateRoute(route);
+        });
 
-    function animateRoute(route) {
-        const animationDuration = 80000;
-        const cameraAltitude = 400;
-        const routeDistance = turf.lineDistance(turf.lineString(route));
-        let start;
+        function animateRoute(route) {
+            const animationDuration = 80000;
+            const cameraAltitude = 400;
+            const routeDistance = turf.lineDistance(turf.lineString(route));
+            let start;
 
-        function frame(time) {
-            if (!start) start = time;
-            const phase = (time - start) / animationDuration;
+            function frame(time) {
+                if (!start) start = time;
+                const phase = (time - start) / animationDuration;
 
-            if (phase > 1) {
-                setTimeout(() => {
-                    start = 0.0;
-                }, 1500);
-                return;
+                if (phase > 1) {
+                    setTimeout(() => {
+                        start = 0.0;
+                    }, 1500);
+                    return;
+                }
+
+                const alongRoute = turf.along(turf.lineString(route), routeDistance * phase).geometry.coordinates;
+                const camera = map.getFreeCameraOptions();
+
+                camera.position = mapboxgl.MercatorCoordinate.fromLngLat(
+                    { lng: alongRoute[0], lat: alongRoute[1] },
+                    cameraAltitude
+                );
+
+                if (route.length > 1) {
+                    const nextPoint = turf.along(turf.lineString(route), routeDistance * Math.min(phase + 0.01, 1)).geometry.coordinates;
+                    camera.lookAtPoint({ lng: nextPoint[0], lat: nextPoint[1] });
+                }
+
+                map.setFreeCameraOptions(camera);
+                window.requestAnimationFrame(frame);
             }
 
-            const alongRoute = turf.along(turf.lineString(route), routeDistance * phase).geometry.coordinates;
-            const camera = map.getFreeCameraOptions();
-
-            camera.position = mapboxgl.MercatorCoordinate.fromLngLat(
-                { lng: alongRoute[0], lat: alongRoute[1] },
-                cameraAltitude
-            );
-
-            if (route.length > 1) {
-                const nextPoint = turf.along(turf.lineString(route), routeDistance * Math.min(phase + 0.01, 1)).geometry.coordinates;
-                camera.lookAtPoint({ lng: nextPoint[0], lat: nextPoint[1] });
-            }
-
-            map.setFreeCameraOptions(camera);
             window.requestAnimationFrame(frame);
         }
-
-        window.requestAnimationFrame(frame);
-    }
-</script>
+    </script>
 </body>
 </html>
