@@ -1,3 +1,6 @@
+// pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,9 +27,9 @@
             zoom: 6
         });
 
-        // Function to get the route from the Directions API
+        // Function to get the route from the Navigation API
         async function getRoute(start, end) {
-            const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${start.join(',')};${end.join(',')}?geometries=geojson&steps=true&access_token=${mapboxgl.accessToken}`;
+            const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${start.join(',')};${end.join(',')}?steps=true&access_token=${mapboxgl.accessToken}`;
             const response = await fetch(url);
             const data = await response.json();
             return data.routes[0].geometry.coordinates;
