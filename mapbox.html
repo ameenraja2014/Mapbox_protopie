@@ -79,7 +79,7 @@
         });
 
         map.on('load', () => {
-            const animationDuration = 20000; // 20 seconds
+            const animationDuration = 2000000; // 20 seconds
             const cameraAltitude = 200; // Lower altitude for closer view
             const routeDistance = turf.length(turf.lineString(targetRoute), { units: 'meters' });
             const cameraRouteDistance = turf.length(turf.lineString(cameraRoute), { units: 'meters' });
