@@ -1,3 +1,5 @@
+//pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -5,14 +7,12 @@
     <title>Mapbox Navigation</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    
-  
     <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css' rel='stylesheet' />
 
-    
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.js"></script>
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.css" type="text/css">
+
     <style>
         body { margin: 0; padding: 0; }
         #map { position: absolute; top: 0; bottom: 0; width: 100%; }
@@ -27,11 +27,11 @@
             container: 'map',
             style: 'mapbox://styles/mapbox/standard', // Car dashboard-like style
             center: [11.4226, 48.766], // Starting position [lng, lat]
-            zoom: 100 // Starting zoom level
+            zoom: 15 // Starting zoom level, adjust as needed
         });
 
         map.on('style.load', () => {
-        map.setConfigProperty('basemap', 'lightPreset', 'night');
+            map.setConfigProperty('basemap', 'lightPreset', 'night');
         });
         
         var directions = new MapboxDirections({
@@ -45,7 +45,50 @@
 
         // Set a default route
         directions.setOrigin([11.4226,  48.766]); // Starting point [lng, lat]
-        directions.setDestination([11.5820, 48.1351 ]); // Ending point [lng, lat]
+        directions.setDestination([11.5820, 48.1351]); // Ending point [lng, lat]
+
+        // Start navigation when route is obtained
+        directions.on('route', (e) => {
+            const route = e.route[0].geometry.coordinates;
+            startNavigation(route);
+        });
+
+        // Function to simulate car movement along the route
+        function startNavigation(route) {
+            let index = 0;
+            const duration = 300; // Duration of animation in milliseconds, adjust as needed
+
+            function move() {
+                if (index < route.length) {
+                    const point = route[index];
+                    map.flyTo({
+                        center: point,
+                        zoom: 18, // Zoom level for street view, adjust as needed
+                        speed: 0.2, // Adjust the speed of animation, higher values for faster animation
+                        curve: 1, // Acceleration curve
+                        bearing: getBearing(index, route), // Adjust bearing to face direction of movement
+                        pitch: 50 // Pitch for 3D perspective, adjust as needed
+                    });
+
+                    index++;
+                    setTimeout(move, duration);
+                }
+            }
+
+            move();
+        }
+
+        // Function to calculate bearing between two points
+        function getBearing(index, route) {
+            if (index < route.length - 1) {
+                const current = route[index];
+                const next = route[index + 1];
+                const bearing = Math.atan2(next[0] - current[0], next[1] - current[1]) * (180 / Math.PI);
+                return bearing;
+            } else {
+                return map.getBearing();
+            }
+        }
     </script>
 </body>
 </html>
