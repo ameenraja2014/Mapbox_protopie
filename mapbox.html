@@ -1,7 +1,6 @@
 
 //  pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg
 
-   
 <!DOCTYPE html>
 <html>
 <head>
@@ -29,9 +28,13 @@
             container: 'map',
             style: 'mapbox://styles/mapbox/standard', // Car dashboard-like style
             center: [11.4226, 48.766], // Starting position [lng, lat]
-            zoom: 15 // Starting zoom level
+            zoom: 2800 // Starting zoom level
         });
 
+        map.on('style.load', () => {
+            map.setConfigProperty('basemap', 'lightPreset', 'night');
+        });
+        
         var directions = new MapboxDirections({
             accessToken: mapboxgl.accessToken,
             unit: 'metric',
@@ -41,32 +44,33 @@
 
         map.addControl(directions, 'top-left');
 
-        directions.setOrigin([11.4226, 48.766]); // Starting point [lng, lat]
-        directions.setDestination([11.5820, 48.1351]); // Ending point [lng, lat]
-
         var routeCoordinates = [];
 
+        // Event listener for adding destination
         directions.on('route', (e) => {
             const route = e.route[0].geometry.coordinates;
-            animateRoute(route);
+            if (routeCoordinates.length > 1) {
+                animateRoute(route);
+            } else {
+                routeCoordinates = route;
+            }
         });
 
+        // Function to animate the route based on turn-by-turn instructions
         function animateRoute(route) {
             let index = 0;
-            const duration = 100; // Duration between each step in milliseconds
-            const zoomLevel = 15; // Constant zoom level
+            const duration = 2000000; // Duration of animation in milliseconds
 
             function move() {
                 if (index < route.length) {
                     const point = route[index];
                     map.flyTo({
                         center: point,
-                        zoom: zoomLevel,
-                        speed: 0.5,
-                        curve: 1,
-                        pitch: 45,
-                        bearing: getBearing(index, route),
-                        essential: true // this animation is considered essential with respect to prefers-reduced-motion
+                        zoom: 2800, // Zoom level for street view
+                        speed: 0.5, // Speed of animation
+                        curve: 1, // Acceleration curve
+                        pitch: 180, // Pitch for top-down view
+                        bearing: getBearing(index, route), // Adjust bearing to face direction of movement
                     });
 
                     index++;
@@ -77,6 +81,7 @@
             move();
         }
 
+        // Function to calculate bearing between two points
         function getBearing(index, route) {
             if (index < route.length - 1) {
                 const current = route[index];
@@ -87,10 +92,6 @@
                 return map.getBearing();
             }
         }
-    </script>
-</body>
-</html>
-
     </script>
 </body>
 </html>
