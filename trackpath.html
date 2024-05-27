@@ -19,11 +19,11 @@ body { margin: 0; padding: 0; }
     mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
     const map = new mapboxgl.Map({
         container: 'map',
-        zoom: 4,
+        zoom: 14,
         center: [11.4194, 48.7621], // Centering on Ingolstadt
-        pitch: 65,
+        pitch: 45,
         bearing: 0,
-        style: 'mapbox://styles/mapbox/outdoors-v12',
+        style: 'mapbox://styles/mapbox/standard',
         interactive: false
     });
 
@@ -81,7 +81,7 @@ body { margin: 0; padding: 0; }
 
                 if (phase > 1) {
                     setTimeout(() => {
-                        start = 0.0;
+                        start = time;
                     }, 1500);
                 }
 
@@ -95,16 +95,14 @@ body { margin: 0; padding: 0; }
 
                 const camera = map.getFreeCameraOptions();
                 camera.position = mapboxgl.MercatorCoordinate.fromLngLat({ lng: alongRoute[0], lat: alongRoute[1] }, cameraAltitude);
+                camera.pitch = cameraPitch;
+                camera.bearing = bearing;
                 
-                // Apply pitch and bearing
-                camera.setPitch(cameraPitch);
-                camera.setBearing(bearing);
-                
-                camera.lookAtPoint({ lng: nextPoint[0], lat: nextPoint[1] });
-
                 map.setFreeCameraOptions(camera);
 
-                window.requestAnimationFrame(frame);
+                if (phase < 1) {
+                    window.requestAnimationFrame(frame);
+                }
             }
 
             window.requestAnimationFrame(frame);
