@@ -4,13 +4,10 @@
     <meta charset="utf-8" />
     <title>Mapbox Navigation</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <script src='https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css' rel='stylesheet' />
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.js"></script>
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.css" type="text/css">
-    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
-
     <style>
         body { margin: 0; padding: 0; }
         #map { position: absolute; top: 0; bottom: 0; width: 100%; }
@@ -23,62 +20,60 @@
 
         var map = new mapboxgl.Map({
             container: 'map',
-            style: 'mapbox://styles/mapbox/standard',
+            style: 'mapbox://styles/mapbox/streets-v11', // Map style
             center: [11.4226, 48.766], // Starting position [lng, lat]
-            zoom: 15 // Starting zoom level
+            zoom: 12 // Starting zoom level
         });
 
         var directions = new MapboxDirections({
             accessToken: mapboxgl.accessToken,
             unit: 'metric',
-            profile: 'mapbox/driving', // Driving directions
-            interactive: false // Disable direct interaction
+            profile: 'mapbox/driving',
+            interactive: false
         });
 
         map.addControl(directions, 'top-left');
 
+        // Set a default route
         directions.setOrigin([11.4226, 48.766]); // Starting point [lng, lat]
         directions.setDestination([11.5820, 48.1351]); // Ending point [lng, lat]
 
-        directions.on('route', (e) => {
-            const route = e.route[0].geometry.coordinates;
-            animateRoute(route);
+        directions.on('route', (event) => {
+            if (event.route && event.route[0]) {
+                const route = event.route[0].geometry.coordinates;
+                animateCamera(route);
+            }
         });
 
-        function animateRoute(route) {
-            const animationDuration = 80000; // Duration of the entire animation in milliseconds
-            const cameraAltitude = 400; // Camera altitude
-            let start;
+        function animateCamera(route) {
+            const animationDuration = 30000; // Total animation duration in milliseconds
+            const steps = route.length;
+            const stepDuration = animationDuration / steps;
 
-            function frame(time) {
-                if (!start) start = time;
-                const phase = (time - start) / animationDuration;
-
-                if (phase > 1) {
-                    setTimeout(() => {
-                        start = 0.0;
-                    }, 1500);
-                    return;
+            let index = 0;
+            function step() {
+                if (index < steps) {
+                    const coord = route[index];
+                    const nextCoord = route[index + 1] || coord;
+                    const altitude = 500; // Camera altitude in meters
+                    const camera = map.getFreeCameraOptions();
+                    camera.position = mapboxgl.MercatorCoordinate.fromLngLat(
+                        {
+                            lng: coord[0],
+                            lat: coord[1]
+                        },
+                        altitude
+                    );
+                    camera.lookAtPoint({
+                        lng: nextCoord[0],
+                        lat: nextCoord[1]
+                    });
+                    map.setFreeCameraOptions(camera);
+                    index++;
+                    setTimeout(step, stepDuration);
                 }
-
-                const alongRoute = turf.along(turf.lineString(route), turf.lineDistance(turf.lineString(route)) * phase).geometry.coordinates;
-                const camera = map.getFreeCameraOptions();
-
-                camera.position = mapboxgl.MercatorCoordinate.fromLngLat(
-                    { lng: alongRoute[0], lat: alongRoute[1] },
-                    cameraAltitude
-                );
-
-                if (route.length > 1) {
-                    const nextPoint = turf.along(turf.lineString(route), turf.lineDistance(turf.lineString(route)) * Math.min(phase + 0.01, 1)).geometry.coordinates;
-                    camera.lookAtPoint({ lng: nextPoint[0], lat: nextPoint[1] });
-                }
-
-                map.setFreeCameraOptions(camera);
-                window.requestAnimationFrame(frame);
             }
-
-            window.requestAnimationFrame(frame);
+            step();
         }
     </script>
 </body>
