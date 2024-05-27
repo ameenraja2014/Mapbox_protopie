@@ -1,6 +1,7 @@
 
 //  pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg
 
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -8,12 +9,12 @@
     <title>Mapbox Navigation</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js'></script>
+     <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css' rel='stylesheet' />
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 
-    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.js"></script>
+     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.js"></script>
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.css" type="text/css">
-
     <style>
         body { margin: 0; padding: 0; }
         #map { position: absolute; top: 0; bottom: 0; width: 100%; }
@@ -21,77 +22,113 @@
 </head>
 <body>
     <div id="map"></div>
+
     <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
-
-        var map = new mapboxgl.Map({
+        const map = new mapboxgl.Map({
             container: 'map',
-            style: 'mapbox://styles/mapbox/standard', // Car dashboard-like style
-            center: [11.4226, 48.766], // Starting position [lng, lat]
-            zoom: 2800 // Starting zoom level
+            zoom: 15,
+            center: [11.4226, 48.766],
+            pitch: 45,
+            bearing: -180,
+            style: 'mapbox://styles/standard',
+            interactive: false
         });
+
+        const origin = [11.4226, 48.766];
+        const destination = [11.5820, 48.1351];
+
+        // Define the path for the animation
+        const targetRoute = [
+            origin,
+            destination
+        ];
+
+        const cameraRoute = [
+            origin,
+            destination
+        ];
 
         map.on('style.load', () => {
-            map.setConfigProperty('basemap', 'lightPreset', 'night');
-        });
-        
-        var directions = new MapboxDirections({
-            accessToken: mapboxgl.accessToken,
-            unit: 'metric',
-            profile: 'mapbox/driving', // Driving directions
-            interactive: false // Disable direct interaction
-        });
+            map.addSource('mapbox-dem', {
+                'type': 'raster-dem',
+                'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+                'tileSize': 512,
+                'maxzoom': 14
+            });
+            map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
 
-        map.addControl(directions, 'top-left');
-
-        var routeCoordinates = [];
-
-        // Event listener for adding destination
-        directions.on('route', (e) => {
-            const route = e.route[0].geometry.coordinates;
-            if (routeCoordinates.length > 1) {
-                animateRoute(route);
-            } else {
-                routeCoordinates = route;
-            }
-        });
-
-        // Function to animate the route based on turn-by-turn instructions
-        function animateRoute(route) {
-            let index = 0;
-            const duration = 2000000; // Duration of animation in milliseconds
-
-            function move() {
-                if (index < route.length) {
-                    const point = route[index];
-                    map.flyTo({
-                        center: point,
-                        zoom: 2800, // Zoom level for street view
-                        speed: 0.5, // Speed of animation
-                        curve: 1, // Acceleration curve
-                        pitch: 180, // Pitch for top-down view
-                        bearing: getBearing(index, route), // Adjust bearing to face direction of movement
-                    });
-
-                    index++;
-                    setTimeout(move, duration);
+            map.addSource('trace', {
+                type: 'geojson',
+                data: {
+                    'type': 'Feature',
+                    'properties': {},
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': targetRoute
+                    }
                 }
+            });
+            map.addLayer({
+                type: 'line',
+                source: 'trace',
+                id: 'line',
+                paint: {
+                    'line-color': 'black',
+                    'line-width': 5
+                },
+                layout: {
+                    'line-cap': 'round',
+                    'line-join': 'round'
+                }
+            });
+        });
+
+        map.on('load', () => {
+            const animationDuration = 20000; // 20 seconds
+            const cameraAltitude = 200; // Lower altitude for closer view
+            const routeDistance = turf.length(turf.lineString(targetRoute), { units: 'meters' });
+            const cameraRouteDistance = turf.length(turf.lineString(cameraRoute), { units: 'meters' });
+
+            let start;
+
+            function frame(time) {
+                if (!start) start = time;
+                const phase = (time - start) / animationDuration;
+
+                if (phase > 1) {
+                    start = 0.0;
+                    setTimeout(() => {
+                        window.requestAnimationFrame(frame);
+                    }, 1500);
+                    return;
+                }
+
+                const alongRoute = turf.along(turf.lineString(targetRoute), routeDistance * phase, { units: 'meters' }).geometry.coordinates;
+                const alongCamera = turf.along(turf.lineString(cameraRoute), cameraRouteDistance * phase, { units: 'meters' }).geometry.coordinates;
+
+                const camera = map.getFreeCameraOptions();
+
+                camera.position = mapboxgl.MercatorCoordinate.fromLngLat(
+                    {
+                        lng: alongCamera[0],
+                        lat: alongCamera[1]
+                    },
+                    cameraAltitude
+                );
+
+                camera.lookAtPoint({
+                    lng: alongRoute[0],
+                    lat: alongRoute[1]
+                });
+
+                map.setFreeCameraOptions(camera);
+
+                window.requestAnimationFrame(frame);
             }
 
-            move();
-        }
-
-        // Function to calculate bearing between two points
-        function getBearing(index, route) {
-            if (index < route.length - 1) {
-                const current = route[index];
-                const next = route[index + 1];
-                const bearing = Math.atan2(next[0] - current[0], next[1] - current[1]) * (180 / Math.PI);
-                return bearing;
-            } else {
-                return map.getBearing();
-            }
-        }
+            window.requestAnimationFrame(frame);
+        });
     </script>
 </body>
 </html>
