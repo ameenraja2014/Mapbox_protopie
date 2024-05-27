@@ -23,7 +23,7 @@ body { margin: 0; padding: 0; }
         center: [11.4194, 48.7621], // Centering on Ingolstadt
         pitch: 65,
         bearing: -180,
-        style: 'mapbox://styles/mapbox/standard',
+        style: 'mapbox://styles/mapbox/outdoors-v12',
         interactive: false
     });
 
@@ -50,22 +50,27 @@ body { margin: 0; padding: 0; }
                     'type': 'Feature',
                     'properties': {},
                     'geometry': {
-                        'type': 'Polygon',
+                        'type': 'LineString',
                         'coordinates': route
                     }
                 }
             });
-          map.addLayer({
-  id: 'my-line-layer',
-  source: 'vector-source',
-  'source-layer': 'road',
-  paint: {
-    'line-emissive-strength': 1
-  }
-});
+            map.addLayer({
+                type: 'line',
+                source: 'trace',
+                id: 'line',
+                paint: {
+                    'line-color': 'black',
+                    'line-width': 10
+                },
+                layout: {
+                    'line-cap': 'round',
+                    'line-join': 'round'
+                }
+            });
 
             const animationDuration = 60000; // Duration for the animation
-            const cameraAltitude = 2000; // Altitude of the camera
+            const cameraAltitude = 200; // Altitude of the camera
 
             let start;
 
