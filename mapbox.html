@@ -14,15 +14,7 @@
         body { margin: 0; padding: 0; }
         #map { position: absolute; top: 0; bottom: 0; width: 100%; }
         .mapboxgl-ctrl-top-left { display: flex; }
-        #go-button {
-            background: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            margin-left: 10px;
-            z-index: 1;
-        }
+       
     </style>
 </head>
 <body>
@@ -32,14 +24,14 @@
 const map = new mapboxgl.Map({
 	container: 'map', // container ID
 	style: 'mapbox://styles/mapbox/standard'
-	center: [-74.5, 40], // starting position [lng, lat]
+	center: [48.7667, 11.4226], // starting position [lng, lat]
 	zoom: 5000, // starting zoom
-	lightPreset : 'Night',
+
     
         });
         
 	map.on('style.load', () => {
-    map.setConfigProperty('basemap', 'lightPreset', 'dusk');
+    map.setConfigProperty('standard', 'lightPreset', 'dusk');
 });
 
 	    
