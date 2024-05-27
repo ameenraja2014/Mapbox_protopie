@@ -39,52 +39,142 @@
     </style>
 </head>
 <body>
-    <a href="./trackpath.html" class="map" >Click me</a>
+    <button class="map" onclick="startAnimation()">Click me</button>
     <div id="map"></div>
-    <script>
-        mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
+   <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
 
-        var map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/standard', // Car dashboard-like style
-            center: [11.4226, 48.766], // Starting position [lng, lat]
-            zoom: 13 // Starting zoom level
+    // Initialize map
+    var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/standard',
+        center: [11.4226, 48.766],
+        zoom: 13
+    });
+
+    // Variables to store selected locations
+    var origin = null;
+    var destination = null;
+
+    // Function to set origin
+    function setOrigin() {
+        map.on('click', function(e) {
+            origin = [e.lngLat.lng, e.lngLat.lat];
+            map.setFeatureState({ source: 'places', id: 'origin' }, { selected: true });
+        });
+    }
+
+    // Function to set destination
+    function setDestination() {
+        map.on('click', function(e) {
+            destination = [e.lngLat.lng, e.lngLat.lat];
+            map.setFeatureState({ source: 'places', id: 'destination' }, { selected: true });
+        });
+    }
+
+    // Function to start animation
+    function startAnimation() {
+        if (origin && destination) {
+            animateRoute();
+        } else {
+            alert('Please select origin and destination first.');
+        }
+    }
+
+    // Function to fetch route coordinates
+    const getRoute = async () => {
+        const query = await fetch(
+            `https://api.mapbox.com/directions/v5/mapbox/driving/${origin[0]},${origin[1]};${destination[0]},${destination[1]}?geometries=geojson&access_token=${mapboxgl.accessToken}`,
+            { method: 'GET' }
+        );
+        const json = await query.json();
+        const route = json.routes[0].geometry.coordinates;
+
+        return route;
+    };
+
+    // Function to animate route
+    const animateRoute = async () => {
+        const route = await getRoute();
+        const routeDistance = turf.lineDistance(turf.lineString(route));
+        let currentPhase = 0;
+
+        function frame() {
+            if (currentPhase >= 1) {
+                // Animation completed, reset phase
+                currentPhase = 0;
+            }
+
+            const alongRoute = turf.along(turf.lineString(route), routeDistance * currentPhase).geometry.coordinates;
+            const nextPoint = turf.along(turf.lineString(route), routeDistance * (currentPhase + 0.001)).geometry.coordinates;
+
+            const bearing = turf.bearing(
+                turf.point(alongRoute),
+                turf.point(nextPoint)
+            );
+
+            const camera = map.getFreeCameraOptions();
+            camera.position = mapboxgl.MercatorCoordinate.fromLngLat({ lng: alongRoute[0], lat: alongRoute[1] }, 200);
+            camera.pitch = 45;
+            camera.lookAtPoint({ lng: nextPoint[0], lat: nextPoint[1] });
+
+            map.setFreeCameraOptions(camera);
+
+            currentPhase += 0.001; // Increment phase
+        }
+
+        setInterval(frame, 100); // Animation frame rate
+    };
+
+    // Add markers for origin and destination
+    map.on('load', function() {
+        map.addSource('places', {
+            'type': 'geojson',
+            'data': {
+                'type': 'FeatureCollection',
+                'features': [
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'id': 'origin'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': []
+                        }
+                    },
+                    {
+                        'type': 'Feature',
+                        'properties': {
+                            'id': 'destination'
+                        },
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': []
+                        }
+                    }
+                ]
+            }
         });
 
-        map.on('style.load', () => {
-            map.setConfigProperty('basemap', 'lightPreset', 'night');
+        map.addLayer({
+            'id': 'places',
+            'type': 'circle',
+            'source': 'places',
+            'paint': {
+                'circle-radius': 10,
+                'circle-color': [
+                    'case',
+                    ['boolean', ['feature-state', 'selected'], false],
+                    'red',
+                    'blue'
+                ]
+            }
         });
 
-        var directions = new MapboxDirections({
-            accessToken: mapboxgl.accessToken,
-            unit: 'metric',
-            profile: 'mapbox/driving', // Driving directions
-            interactive: false // Disable direct interaction
-        });
-
-        map.addControl(directions, 'top-left');
-
-        // Set a default route
-        directions.setOrigin([11.4226,  48.766]); // Starting point [lng, lat]
-        directions.setDestination([11.5820, 48.1351]); // Ending point [lng, lat]
-
-        // Delay before auto-selecting routes (in milliseconds)
-        var initialDelay = 5000; // 5 seconds
-
-        // Automatically select routes after initial delay
-        setTimeout(function() {
-            directions.on('routes', function(e) {
-                var routes = e.routes;
-                var totalDistance = routes.reduce((acc, route) => acc + route.distance, 0);
-                var cumulativeTime = initialDelay;
-                routes.forEach(function(route, index) {
-                    setTimeout(function() {
-                        directions.setRouteIndex(index);
-                    }, cumulativeTime);
-                    cumulativeTime += route.distance / totalDistance * 10000; // Adjust time interval based on route distance
-                });
-            });
-        }, initialDelay);
-    </script>
+        setOrigin();
+        setDestination();
+    });
+</script>
 </body>
 </html>
