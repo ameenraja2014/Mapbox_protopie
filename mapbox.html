@@ -7,7 +7,7 @@
 <head>
     <meta charset="utf-8" />
     <title>Mapbox Navigation</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=100.0" />
 
     <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css' rel='stylesheet' />
@@ -68,7 +68,7 @@
                     map.flyTo({
                         center: point,
                         zoom: 1800, // Zoom level for street view
-                        speed: 0.5, // Speed of animation
+                        speed: 20, // Speed of animation
                         curve: 1, // Acceleration curve
                         pitch: 90, // Pitch for top-down view
                         bearing: getBearing(index, route), // Adjust bearing to face direction of movement
