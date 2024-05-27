@@ -24,14 +24,19 @@ body { margin: 0; padding: 0; }
     mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
     const map = new mapboxgl.Map({
         container: 'map',
-        zoom: 14,
+        zoom: 4,
         center: [11.4194, 48.7621], // Centering on Ingolstadt
         pitch: 60, // Initial pitch for 3D effect
         bearing: 0,
-        style: 'mapbox://styles/mapbox/standard', // Using a valid style
-        interactive: false
+        style: 'mapbox://styles/mapbox/standard',
+        interactive: true
     });
 
+     map.on('style.load', () => {
+        map.setConfigProperty('basemap', 'lightPreset', 'night');
+        });
+
+    
     // Fetch the route coordinates from Mapbox Directions API
     const getRoute = async () => {
         try {
@@ -57,6 +62,8 @@ body { margin: 0; padding: 0; }
 
         const routeDistance = turf.length(turf.lineString(route));
 
+        
+        
         map.on('load', () => {
             console.log('Map loaded.');
             map.addSource('trace', {
@@ -71,9 +78,7 @@ body { margin: 0; padding: 0; }
                 }
             });
 
-             map.on('style.load', () => {
-        map.setConfigProperty('basemap', 'lightPreset', 'night');
-        });
+            
             
             map.addLayer({
                 type: 'line',
