@@ -4,8 +4,13 @@
     <meta charset="utf-8" />
     <title>Mapbox Navigation</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link href="https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.css" rel="stylesheet" />
-    <script src="https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.js"></script>
+
+    
+  
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css' rel='stylesheet' />
+
+    
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.js"></script>
     <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.css" type="text/css">
     <style>
@@ -20,11 +25,15 @@
 
         var map = new mapboxgl.Map({
             container: 'map',
-            style: 'mapbox://styles/mapbox/navigation-preview-day-v4', // Car dashboard-like style
-            center: [-122.420679, 37.772537], // Starting position [lng, lat]
+            style: 'mapbox://styles/mapbox/standard', // Car dashboard-like style
+            center: [48.7667, 11.4226], // Starting position [lng, lat]
             zoom: 13 // Starting zoom level
         });
 
+        map.on('style.load', () => {
+        map.setConfigProperty('basemap', 'lightPreset', 'dusk');
+        });
+        
         var directions = new MapboxDirections({
             accessToken: mapboxgl.accessToken,
             unit: 'metric',
@@ -35,8 +44,8 @@
         map.addControl(directions, 'top-left');
 
         // Set a default route
-        directions.setOrigin([ -122.414, 37.776 ]); // Starting point [lng, lat]
-        directions.setDestination([ -122.437, 37.760 ]); // Ending point [lng, lat]
+        directions.setOrigin([ 48.766, 11.4226 ]); // Starting point [lng, lat]
+        directions.setDestination([ 48.1351, 11.5820 ]); // Ending point [lng, lat]
     </script>
 </body>
 </html>
