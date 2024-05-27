@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8" />
     <title>Mapbox Navigation</title>
-    <meta name="viewport" content="width=device-width, initial-scale=100.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css' rel='stylesheet' />
@@ -16,10 +16,12 @@
     <style>
         body { margin: 0; padding: 0; }
         #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+        #fly-button { position: absolute; top: 10px; right: 10px; z-index: 1; }
     </style>
 </head>
 <body>
     <div id="map"></div>
+    <button id="fly-button">Fly Along Route</button>
     <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
 
@@ -27,7 +29,7 @@
             container: 'map',
             style: 'mapbox://styles/mapbox/standard', // Car dashboard-like style
             center: [11.4226, 48.766], // Starting position [lng, lat]
-            zoom: 15 // Starting zoom level, adjust as needed
+            zoom: 15 // Starting zoom level
         });
 
         map.on('style.load', () => {
@@ -43,31 +45,46 @@
 
         map.addControl(directions, 'top-left');
 
-        // Set a default route
-        directions.setOrigin([11.4226,  48.766]); // Starting point [lng, lat]
-        directions.setDestination([11.5820, 48.1351]); // Ending point [lng, lat]
+        var routeCoordinates = [];
 
-        // Start navigation when route is obtained
+        // Function to add a destination
+        function addDestination(destination) {
+            routeCoordinates.push(destination);
+            if (routeCoordinates.length === 2) {
+                startNavigation(routeCoordinates);
+            }
+        }
+
+        // Event listener for adding destination
         directions.on('route', (e) => {
             const route = e.route[0].geometry.coordinates;
-            startNavigation(route);
+            if (routeCoordinates.length > 1) {
+                addDestination(routeCoordinates.pop());
+            }
+        });
+
+        // Button event listener for flying along the route
+        document.getElementById('fly-button').addEventListener('click', () => {
+            if (routeCoordinates.length > 1) {
+                startNavigation(routeCoordinates);
+            }
         });
 
         // Function to simulate car movement along the route
         function startNavigation(route) {
             let index = 0;
-            const duration = 30000; // Duration of animation in milliseconds, adjust as needed
+            const duration = 500; // Duration of animation in milliseconds
 
             function move() {
                 if (index < route.length) {
                     const point = route[index];
                     map.flyTo({
                         center: point,
-                        zoom: 18, // Zoom level for street view, adjust as needed
-                        speed: 0.2, // Adjust the speed of animation, higher values for faster animation
+                        zoom: 18, // Zoom level for street view
+                        speed: 0.2, // Speed of animation
                         curve: 1, // Acceleration curve
                         bearing: getBearing(index, route), // Adjust bearing to face direction of movement
-                        pitch: 50 // Pitch for 3D perspective, adjust as needed
+                        pitch: 50 // Pitch for 3D perspective
                     });
 
                     index++;
@@ -92,3 +109,4 @@
     </script>
 </body>
 </html>
+
