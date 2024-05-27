@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <title>Mapbox Navigation</title>
+    <title>Mapbox Navigation with GO Button</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.css" rel="stylesheet" />
     <script src="https://api.mapbox.com/mapbox-gl-js/v2.4.1/mapbox-gl.js"></script>
@@ -11,27 +11,74 @@
     <style>
         body { margin: 0; padding: 0; }
         #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+        #go-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <div id="map"></div>
+    <button id="go-button">GO</button>
     <script>
-        // Replace 'YOUR_MAPBOX_ACCESS_TOKEN' with your actual Mapbox access token
         mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
-        
-        // Initialize the map
         var map = new mapboxgl.Map({
             container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v12', // Map style
+            style: 'mapbox://styles/mapbox/navigation-preview-day-v4', // Map style
             center: [-74.5, 40], // Starting position [lng, lat]
             zoom: 9 // Starting zoom level
         });
 
-        // Add Mapbox Directions
         var directions = new MapboxDirections({
-            accessToken: mapboxgl.accessToken
+            accessToken: mapboxgl.accessToken,
+            unit: 'metric',
+            profile: 'mapbox/driving', // Driving directions
+            interactive: false // Disable direct interaction
         });
         map.addControl(directions, 'top-left');
+
+        // Set the origin and destination
+        directions.setOrigin([-74.5, 40]); // Starting point [lng, lat]
+        directions.setDestination([-73.9851, 40.7589]); // Ending point [lng, lat]
+
+        // Initially prevent automatic route following
+        var route = null;
+        directions.on('route', (e) => {
+            route = e.route[0].geometry.coordinates;
+        });
+
+        // Handle the GO button click
+        document.getElementById('go-button').addEventListener('click', () => {
+            if (route) {
+                startNavigation(route);
+            }
+        });
+
+        // Function to simulate car movement along the route
+        function startNavigation(route) {
+            var marker = new mapboxgl.Marker({ color: 'red' })
+                .setLngLat(route[0])
+                .addTo(map);
+
+            let index = 0;
+            function move() {
+                marker.setLngLat(route[index]);
+                map.panTo(route[index]);
+                index++;
+
+                if (index < route.length) {
+                    requestAnimationFrame(move);
+                }
+            }
+            move();
+        }
     </script>
 </body>
 </html>
