@@ -20,9 +20,9 @@ body { margin: 0; padding: 0; }
 mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
 const map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v11',
+    style: 'mapbox://styles/mapbox/standard',
     center: [11.4194, 48.7621], // Starting point (Ingolstadt)
-    zoom: 14,
+    zoom: 4,
     pitch: 60, // Initial pitch for 3D effect
     bearing: 0, // Initial bearing (North)
     antialias: true // Smooth edges
@@ -72,13 +72,13 @@ const animateCamera = async () => {
                 'line-cap': 'round'
             },
             paint: {
-                'line-color': 'blue',
-                'line-width': 5
+                'line-color': 'black',
+                'line-width': 20
             }
         });
 
-        const animationDuration = 30000; // Animation duration in milliseconds (30 seconds)
-        const cameraAltitude = 100; // Camera altitude from the ground
+        const animationDuration = 300000; // Animation duration in milliseconds (30 seconds)
+        const cameraAltitude = 50; // Camera altitude from the ground
         const cameraPitch = 45; // Camera pitch angle
 
         let startTime;
