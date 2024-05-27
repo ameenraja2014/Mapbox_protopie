@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <title>Mapbox Custom Style</title>
-    <meta name="viewport" content="width=device-width, initial-scale=100.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css' rel='stylesheet' />
@@ -14,6 +14,7 @@
     <style>
         body { margin: 0; padding: 0; }
         #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+        .mapboxgl-ctrl-directions.mapboxgl-ctrl { position: absolute; top: 0; left: 50px; }
     </style>
 </head>
 <body>
@@ -31,22 +32,18 @@
             style: 'mapbox://styles/mapbox/standard', // map style
         });
 
-        map.on('load', function() {
-            console.log('Map loaded successfully.');
+        var directions = new MapboxDirections({
+            accessToken: mapboxgl.accessToken,
+            unit: 'metric',
+            profile: 'mapbox/driving', // Driving directions
+            interactive: false // Disable direct interaction
+        });
 
-            var directions = new MapboxDirections({
-                accessToken: mapboxgl.accessToken,
-                unit: 'metric',
-                profile: 'mapbox/driving', // Driving directions
-                interactive: false // Disable direct interaction
-            });
+        map.addControl(directions);
 
-            map.addControl(directions, 'top-left');
-
-            directions.on('route', (e) => {
-                const route = e.route[0].geometry.coordinates;
-                startNavigation(route);
-            });
+        directions.on('route', (e) => {
+            const route = e.route[0].geometry.coordinates;
+            startNavigation(route);
         });
 
         function startNavigation(route) {
