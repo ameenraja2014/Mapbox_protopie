@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Animate the camera along a path</title>
+<title>Animate the camera along a road route</title>
 <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
@@ -23,102 +23,92 @@ body { margin: 0; padding: 0; }
         center: [11.4194, 48.7621], // Centering on Ingolstadt
         pitch: 65,
         bearing: -180,
-        style: 'mapbox://styles/mapbox/standard',
+        style: 'mapbox://styles/mapbox/outdoors-v12',
         interactive: false
     });
 
-    const ingolstadtToVillage = [
-        [11.4194, 48.7621],
-        [11.4200, 48.7615],
-        [11.4206, 48.7610],
-        [11.4212, 48.7605],
-        [11.4218, 48.7600],
-        [11.4224, 48.7595],
-        [11.4230, 48.7590],
-        [11.4236, 48.7585],
-        [11.4242, 48.7580],
-        [11.4248, 48.7575],
-        [11.4254, 48.7570],
-        [11.4260, 48.7565],
-        [11.4266, 48.7560],
-        [11.4272, 48.7555],
-        [11.4278, 48.7550],
-        [11.4284, 48.7545],
-        [11.4290, 48.7540],
-        [11.4296, 48.7535],
-        [11.4302, 48.7530],
-        [11.4308, 48.7525]
-    ];
+    // Fetch the route coordinates from Mapbox Directions API
+    const getRoute = async () => {
+        const query = await fetch(
+            `https://api.mapbox.com/directions/v5/mapbox/driving/11.4194,48.7621;11.4660,48.7650?geometries=geojson&access_token=${mapboxgl.accessToken}`,
+            { method: 'GET' }
+        );
+        const json = await query.json();
+        const route = json.routes[0].geometry.coordinates;
 
-    const targetRoute = ingolstadtToVillage;
-    const cameraRoute = ingolstadtToVillage;
+        return route;
+    };
 
-    map.on('style.load', () => {
-        map.addSource('mapbox-dem', {
-            'type': 'raster-dem',
-            'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-            'tileSize': 512,
-            'maxzoom': 14
-        });
-        map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
-        map.addSource('trace', {
-            type: 'geojson',
-            data: {
-                'type': 'Feature',
-                'properties': {},
-                'geometry': {
-                    'type': 'LineString',
-                    'coordinates': targetRoute
+    const animateRoute = async () => {
+        const route = await getRoute();
+        const routeDistance = turf.lineDistance(turf.lineString(route));
+
+        map.on('style.load', () => {
+            map.addSource('mapbox-dem', {
+                'type': 'raster-dem',
+                'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+                'tileSize': 512,
+                'maxzoom': 14
+            });
+            map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+            map.addSource('trace', {
+                type: 'geojson',
+                data: {
+                    'type': 'Feature',
+                    'properties': {},
+                    'geometry': {
+                        'type': 'LineString',
+                        'coordinates': route
+                    }
                 }
-            }
+            });
+            map.addLayer({
+                type: 'line',
+                source: 'trace',
+                id: 'line',
+                paint: {
+                    'line-color': 'black',
+                    'line-width': 5
+                },
+                layout: {
+                    'line-cap': 'round',
+                    'line-join': 'round'
+                }
+            });
         });
-        map.addLayer({
-            type: 'line',
-            source: 'trace',
-            id: 'line',
-            paint: {
-                'line-color': 'black',
-                'line-width': 5
-            },
-            layout: {
-                'line-cap': 'round',
-                'line-join': 'round'
+
+        map.on('load', () => {
+            const animationDuration = 60000; // Duration for the animation
+            const cameraAltitude = 200; // Altitude of the camera
+
+            let start;
+
+            function frame(time) {
+                if (!start) start = time;
+                const phase = (time - start) / animationDuration;
+
+                if (phase > 1) {
+                    setTimeout(() => {
+                        start = 0.0;
+                    }, 1500);
+                }
+
+                const alongRoute = turf.along(turf.lineString(route), routeDistance * phase).geometry.coordinates;
+
+                const camera = map.getFreeCameraOptions();
+                camera.position = mapboxgl.MercatorCoordinate.fromLngLat({ lng: alongRoute[0], lat: alongRoute[1] }, cameraAltitude);
+                camera.lookAtPoint({ lng: alongRoute[0], lat: alongRoute[1] });
+
+                map.setFreeCameraOptions(camera);
+
+                window.requestAnimationFrame(frame);
             }
-        });
-    });
-
-    map.on('load', () => {
-        const animationDuration = 80000;
-        const cameraAltitude = 4000;
-        const routeDistance = turf.lineDistance(turf.lineString(targetRoute));
-        const cameraRouteDistance = turf.lineDistance(turf.lineString(cameraRoute));
-
-        let start;
-
-        function frame(time) {
-            if (!start) start = time;
-            const phase = (time - start) / animationDuration;
-
-            if (phase > 1) {
-                setTimeout(() => {
-                    start = 0.0;
-                }, 1500);
-            }
-
-            const alongRoute = turf.along(turf.lineString(targetRoute), routeDistance * phase).geometry.coordinates;
-            const alongCamera = turf.along(turf.lineString(cameraRoute), cameraRouteDistance * phase).geometry.coordinates;
-
-            const camera = map.getFreeCameraOptions();
-            camera.position = mapboxgl.MercatorCoordinate.fromLngLat({ lng: alongCamera[0], lat: alongCamera[1] }, cameraAltitude);
-            camera.lookAtPoint({ lng: alongRoute[0], lat: alongRoute[1] });
-
-            map.setFreeCameraOptions(camera);
 
             window.requestAnimationFrame(frame);
-        }
+        });
+    };
 
-        window.requestAnimationFrame(frame);
-    });
+    animateRoute();
 </script>
 
 </body>
