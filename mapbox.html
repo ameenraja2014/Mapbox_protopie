@@ -31,13 +31,18 @@
        mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
 const map = new mapboxgl.Map({
 	container: 'map', // container ID
+	style: 'mapbox://styles/mapbox/standard'
 	center: [-74.5, 40], // starting position [lng, lat]
 	zoom: 5000, // starting zoom
-	lightPreset : 'dusk',
+	lightPreset : 'Night',
     
         });
         
+	map.on('style.load', () => {
+    map.setConfigProperty('basemap', 'lightPreset', 'dusk');
+});
 
+	    
         var directions = new MapboxDirections({
             accessToken: mapboxgl.accessToken,
             unit: 'metric',
