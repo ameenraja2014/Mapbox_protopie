@@ -21,7 +21,7 @@
             container: 'map',
             style: 'mapbox://styles/mapbox/streets-v11',
             center: [11.4237, 48.7656], // Starting position [lng, lat]
-            zoom: 6
+            zoom: 1
         });
 
         // Define the coordinates for the path from Ingolstadt to Munich
@@ -54,7 +54,7 @@
                 },
                 'paint': {
                     'line-color': '#888',
-                    'line-width': 6
+                    'line-width': 10
                 }
             });
 
@@ -67,7 +67,7 @@
             const end = coordinates[1];
 
             const startTime = performance.now();
-            const duration = 10000; // 10 seconds for the animation
+            const duration = 1000000; // 10 seconds for the animation
 
             function frame(time) {
                 const t = (time - startTime) / duration;
