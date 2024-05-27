@@ -103,13 +103,18 @@ const animateRoute = async () => {
                 turf.point(nextPoint)
             );
 
-            const camera = map.getFreeCameraOptions();
-            camera.position = mapboxgl.MercatorCoordinate.fromLngLat({ lng: alongRoute[0], lat: alongRoute[1] }, cameraAltitude);
-            camera.pitch = cameraPitch; // Correctly set the pitch
-            camera.bearing = bearing;
-            camera.lookAtPoint({ lng: nextPoint[0], lat: nextPoint[1] });
+            // Create a new camera options object
+            const camera = {
+                center: alongRoute,
+                zoom: map.getZoom(),
+                pitch: cameraPitch,
+                bearing: bearing,
+                around: nextPoint,
+                offset: [0, 0]
+            };
 
-            map.setFreeCameraOptions(camera);
+            // Set the camera options
+            map.easeTo(camera);
 
             window.requestAnimationFrame(frame);
         }
