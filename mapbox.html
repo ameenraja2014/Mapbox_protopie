@@ -37,9 +37,7 @@ const map = new mapboxgl.Map({
     
         });
         
-map.on('style.load', () => {
-    map.setConfigProperty('basemap', 'lightPreset', 'dusk');
-});
+
         var directions = new MapboxDirections({
             accessToken: mapboxgl.accessToken,
             unit: 'metric',
