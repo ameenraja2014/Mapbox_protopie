@@ -21,7 +21,7 @@
         mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
         const map = new mapboxgl.Map({
             container: 'map',
-            zoom: 15,
+            zoom: 2,
             center: [11.4226, 48.766],
             pitch: 45,
             bearing: -180,
@@ -48,7 +48,7 @@
                 'type': 'raster-dem',
                 'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
                 'tileSize': 512,
-                'maxzoom': 14
+                'maxzoom': 2
             });
             map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
 
@@ -79,7 +79,7 @@
         });
 
         map.on('load', () => {
-            const animationDuration = 2000000; // 20 seconds
+            const animationDuration = 200000000; // 20 seconds
             const cameraAltitude = 200; // Lower altitude for closer view
             const routeDistance = turf.length(turf.lineString(targetRoute), { units: 'meters' });
             const cameraRouteDistance = turf.length(turf.lineString(cameraRoute), { units: 'meters' });
