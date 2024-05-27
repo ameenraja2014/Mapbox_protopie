@@ -11,22 +11,20 @@
     <style>
         body { margin: 0; padding: 0; }
         #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+        .mapboxgl-ctrl-top-left { display: flex; }
         #go-button {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 1;
-            padding: 10px 20px;
             background: #007bff;
             color: white;
+            padding: 10px 20px;
             border: none;
             cursor: pointer;
+            margin-left: 10px;
+            z-index: 1;
         }
     </style>
 </head>
 <body>
     <div id="map"></div>
-    <button id="go-button">GO</button>
     <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
         var map = new mapboxgl.Map({
@@ -42,23 +40,34 @@
             profile: 'mapbox/driving', // Driving directions
             interactive: false // Disable direct interaction
         });
+
         map.addControl(directions, 'top-left');
 
-        // Set the origin and destination
-        directions.setOrigin([-74.5, 40]); // Starting point [lng, lat]
-        directions.setDestination([-73.9851, 40.7589]); // Ending point [lng, lat]
+        // Remove default profile buttons
+        map.on('load', function() {
+            var controls = document.getElementsByClassName('mapboxgl-ctrl-group')[0];
+            controls.innerHTML = '';
 
-        // Initially prevent automatic route following
+            // Add custom GO button
+            var goButton = document.createElement('button');
+            goButton.id = 'go-button';
+            goButton.textContent = 'GO';
+            controls.appendChild(goButton);
+
+            goButton.addEventListener('click', function() {
+                if (route) {
+                    startNavigation(route);
+                }
+            });
+
+            // Set the origin and destination
+            directions.setOrigin([-74.5, 40]); // Starting point [lng, lat]
+            directions.setDestination([-73.9851, 40.7589]); // Ending point [lng, lat]
+        });
+
         var route = null;
         directions.on('route', (e) => {
             route = e.route[0].geometry.coordinates;
-        });
-
-        // Handle the GO button click
-        document.getElementById('go-button').addEventListener('click', () => {
-            if (route) {
-                startNavigation(route);
-            }
         });
 
         // Function to simulate car movement along the route
