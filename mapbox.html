@@ -27,7 +27,7 @@
             zoom: 12, // starting zoom
             pitch: 60, // pitch in degrees
             bearing: -60, // bearing in degrees,
-        
+            style: 'mapbox://styles/mapbox/streets-v11', // map style
         });
 
         var directions = new MapboxDirections({
@@ -46,6 +46,13 @@
         var route = null;
         directions.on('route', (e) => {
             route = e.route[0].geometry.coordinates;
+
+            // Fit the map to the route bounds without zooming out
+            var bounds = route.reduce(function(bounds, coord) {
+                return bounds.extend(coord);
+            }, new mapboxgl.LngLatBounds(route[0], route[0]));
+
+            map.fitBounds(bounds, { padding: 100 });
         });
 
         // Remove default profile buttons
@@ -86,5 +93,3 @@
     </script>
 </body>
 </html>
-
-  
