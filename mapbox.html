@@ -21,7 +21,7 @@
 </head>
 <body>
     <div id="map"></div>
-    <button id="fly-button">Fly Along Route</button>
+    <button id="fly-button" style="display: none;">Fly Along Route</button>
     <script>
         mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
 
@@ -52,6 +52,7 @@
             routeCoordinates.push(destination);
             if (routeCoordinates.length === 2) {
                 startNavigation(routeCoordinates);
+                document.getElementById('fly-button').style.display = 'block'; // Show the button
             }
         }
 
@@ -109,4 +110,5 @@
     </script>
 </body>
 </html>
+
 
