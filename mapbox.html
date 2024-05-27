@@ -24,10 +24,10 @@
         const map = new mapboxgl.Map({
             container: 'map', // container ID
             center: [11.4226, 48.7667], // starting position [lng, lat] (Ingolstadt)
-            zoom: 12, // starting zoom
+            zoom: 12000, // starting zoom
             pitch: 60, // pitch in degrees
             bearing: -60, // bearing in degrees,
-            style: 'mapbox://styles/mapbox/streets-v11', // map style
+        
         });
 
         var directions = new MapboxDirections({
@@ -53,43 +53,12 @@
             }, new mapboxgl.LngLatBounds(route[0], route[0]));
 
             map.fitBounds(bounds, { padding: 100 });
-        });
 
-        // Remove default profile buttons
-        map.on('load', function() {
-            var controls = document.getElementsByClassName('mapboxgl-ctrl-group')[0];
-            controls.innerHTML = '';
 
-            // Add custom GO button
-            var goButton = document.createElement('button');
-            goButton.id = 'go-button';
-            goButton.textContent = 'GO';
-            controls.appendChild(goButton);
+       
 
-            goButton.addEventListener('click', function() {
-                if (route) {
-                    startNavigation(route);
-                }
-            });
-        });
 
-        // Function to simulate car movement along the route
-        function startNavigation(route) {
-            var marker = new mapboxgl.Marker({ color: 'red' })
-                .setLngLat(route[0])
-                .addTo(map);
-
-            let index = 0;
-            function move() {
-                if (index < route.length) {
-                    marker.setLngLat(route[index]);
-                    map.panTo(route[index]);
-                    index++;
-                    requestAnimationFrame(move);
-                }
-            }
-            move();
-        }
+     
     </script>
 </body>
 </html>
