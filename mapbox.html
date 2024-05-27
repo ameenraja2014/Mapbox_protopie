@@ -5,12 +5,10 @@
     <title>Mapbox Navigation</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-     <script src='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css' rel='stylesheet' />
-    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css' rel='stylesheet' />
 
-     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.js"></script>
-    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.0.0/mapbox-gl-directions.css" type="text/css">
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
     <style>
         body { margin: 0; padding: 0; }
         #map { position: absolute; top: 0; bottom: 0; width: 100%; }
@@ -27,7 +25,7 @@
             center: [11.4226, 48.766],
             pitch: 45,
             bearing: -180,
-            style: 'mapbox://styles/standard',
+            style: 'mapbox://styles/mapbox/streets-v11',
             interactive: false
         });
 
@@ -48,7 +46,7 @@
         map.on('style.load', () => {
             map.addSource('mapbox-dem', {
                 'type': 'raster-dem',
-                'url': 'mapbox://styles/standard',
+                'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
                 'tileSize': 512,
                 'maxzoom': 14
             });
