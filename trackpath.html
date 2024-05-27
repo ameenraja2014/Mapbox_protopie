@@ -22,8 +22,8 @@ body { margin: 0; padding: 0; }
         zoom: 4,
         center: [11.4194, 48.7621], // Centering on Ingolstadt
         pitch: 90,
-        bearing: 120,
-        style: 'mapbox://styles/mapbox/standard',
+        bearing: 0,
+        style: 'mapbox://styles/mapbox/outdoors-v12',
         interactive: false
     });
 
@@ -60,8 +60,8 @@ body { margin: 0; padding: 0; }
                 source: 'trace',
                 id: 'line',
                 paint: {
-                    'line-color': 'black',
-                    'line-width': 10
+                    'line-color': 'blue',
+                    'line-width': 5
                 },
                 layout: {
                     'line-cap': 'round',
@@ -85,10 +85,16 @@ body { margin: 0; padding: 0; }
                 }
 
                 const alongRoute = turf.along(turf.lineString(route), routeDistance * phase).geometry.coordinates;
+                const nextPoint = turf.along(turf.lineString(route), routeDistance * (phase + 0.001)).geometry.coordinates;
+
+                const bearing = turf.bearing(
+                    turf.point(alongRoute),
+                    turf.point(nextPoint)
+                );
 
                 const camera = map.getFreeCameraOptions();
                 camera.position = mapboxgl.MercatorCoordinate.fromLngLat({ lng: alongRoute[0], lat: alongRoute[1] }, cameraAltitude);
-                camera.lookAtPoint({ lng: alongRoute[0], lat: alongRoute[1] });
+                camera.lookAtPoint({ lng: nextPoint[0], lat: nextPoint[1] });
 
                 map.setFreeCameraOptions(camera);
 
