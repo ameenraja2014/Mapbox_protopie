@@ -12,6 +12,11 @@ body { margin: 0; padding: 0; }
 </style>
 </head>
 <body>
+
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.js"></script>
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.3.1/mapbox-gl-directions.css" type="text/css">
+
+    
 <div id="map"></div>
 
 <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
@@ -31,7 +36,7 @@ body { margin: 0; padding: 0; }
     const getRoute = async () => {
         try {
             const query = await fetch(
-                `https://api.mapbox.com/directions/v5/mapbox/driving/11.4194,48.7621;11.4575,48.7876?geometries=geojson&access_token=${mapboxgl.accessToken}`,
+                `https://api.mapbox.com/directions/v5/mapbox/driving/11.424511%2C48.763382%3B11.478634%2C48.78355?alternatives=true&geometries=geojson&language=en&overview=full&steps=true&access_token=${mapboxgl.accessToken}`,
                 { method: 'GET' }
             );
             const json = await query.json();
