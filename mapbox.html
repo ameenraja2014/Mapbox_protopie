@@ -8,125 +8,101 @@
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.css' rel='stylesheet' />
     <style>
         #map {
-            width: 100vw;
-            height: 100vh;
+            width: 1920vw;
+            height: 1080vh;
         }
     </style>
 </head>
 <body>
     <div id="map"></div>
     <script>
-
-        // ... rest of the JavaScript code from previous response ...
         mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
 
-var map = new mapboxgl.Map({
-  container: 'map',
-  style: 'mapbox://styles/mapbox/streets-v11',
-  center: [11.4167, 48.7823], // Center on Ingolstadt
-  zoom: 10
-});
+        var map = new mapboxgl.Map({
+          container: 'map',
+          style: 'mapbox://styles/mapbox/streets-v11',
+          center: [11.4167, 48.7823], // Center on Ingolstadt
+          zoom: 10
+        });
 
-// Define starting and ending points
-var start = [11.4167, 48.7823]; // Ingolstadt coordinates
-var end = [11.5756, 48.1371]; // Munich coordinates
+        // Define starting and ending points
+        var start = [11.4167, 48.7823]; // Ingolstadt coordinates
+        var end = [11.5756, 48.1371]; // Munich coordinates
 
-// Create a new navigation control
-var navigation = new mapboxgl.NavigationControl();
-map.addControl(navigation);
+        // Optional: Create a navigation control
+        var navigation = new mapboxgl.NavigationControl();
+        map.addControl(navigation);
 
-// Function to create a point feature
-function createPoint(coordinates) {
-  return new mapboxgl.Feature({
-    geometry: new mapboxgl.Point(coordinates),
-    properties: {
-      description: coordinates.join(', ')
-    }
-  });
-}
+        // Function to create a point feature
+        function createPoint(coordinates) {
+          return new mapboxgl.Feature({
+            geometry: new mapboxgl.Point(coordinates),
+            properties: {
+              description: coordinates.join(', ')
+            }
+          });
+        }
 
-// Create point features for start and end locations
-var startPoint = createPoint(start);
-var endPoint = createPoint(end);
+        // Create point features for start and end locations (optional)
+        var startPoint = createPoint(start);
+        var endPoint = createPoint(end);
 
-// Add markers to the map
-map.addLayer({
-  id: 'points',
-  type: 'symbol',
-  source: new mapboxgl.GeoJSONSource({
-    data: {
-      type: 'FeatureCollection',
-      features: [startPoint, endPoint]
-    }
-  }),
-  layout: {
-    'icon-image': '{icon}',
-    'icon-allow-overlap': true
-  },
-  paint: {
-    'icon-offset': [0, -20]
-  }
-});
+        // Optional: Add markers to the map
+        map.addLayer({
+          id: 'points',
+          type: 'symbol',
+          source: new mapboxgl.GeoJSONSource({
+            data: {
+              type: 'FeatureCollection',
+              features: [startPoint, endPoint]
+            }
+          }),
+          layout: {
+            'icon-image': '{icon}',
+            'icon-allow-overlap': true
+          },
+          paint: {
+            'icon-offset': [0, -20]
+          }
+        });
 
-// Define icons for start and end markers
-map.loadImage('https://img.shields.io/static/v1?label=Start&message=Ingolstadt&color=green', (error, image) => {
-  if (error) return;
-  map.addImage('start', image);
-});
-map.loadImage('https://img.shields.io/static/v1?label=End&message=Munich&color=red', (error, image) => {
-  if (error) return;
-  map.addImage('end', image);
-});
+        // Define icons for start and end markers (optional)
+        map.loadImage('https://img.shields.io/static/v1?label=Start&message=Ingolstadt&color=green', (error, image) => {
+          if (error) return;
+          map.addImage('start', image);
+        });
+        map.loadImage('https://img.shields.io/static/v1?label=End&message=Munich&color=red', (error, image) => {
+          if (error) return;
+          map.addImage('end', image);
+        });
 
-// Create a FreeCamera instance
-var camera = new mapboxgl.FreeCamera(map, {
-  position: start // Set initial position to starting point
-});
+        // Create a FreeCamera instance
+        var camera = new mapboxgl.FreeCamera(map, {
+          position: start // Set initial position to starting point
+        });
 
-// Function to animate the camera along the route
-function animateCamera(route) {
-  var currentTime = 0;
-  var duration = 5000; // Adjust duration for animation speed (in milliseconds)
+        // Function to animate the camera along the route
+        function animateCamera(route) {
+          var currentTime = 0;
+          var duration = 5000; // Adjust duration for animation speed (in milliseconds)
 
-  function animate(timestamp) {
-    if (!currentTime) currentTime = timestamp;
-    var progress = (timestamp - currentTime) / duration;
-    if (progress > 1) progress = 1;
+          function animate(timestamp) {
+            if (!currentTime) currentTime = timestamp;
+            var progress = (timestamp - currentTime) / duration;
+            if (progress > 1) progress = 1;
 
-    var location = camera.getPosition();
-    var nextLocation =沿着路线定位(route, progress); // Replace with the following function
+            var location = camera.getPosition();
+            var nextLocation = getAlongRoutePosition(route, progress);
 
-    camera.setBearing(getBearing(location, nextLocation));
-    camera.flyTo({ center: nextLocation }, progress * 2000); // Adjust flyTo speed (in milliseconds)
+            camera.setBearing(getBearing(location, nextLocation));
+            camera.flyTo({ center: nextLocation }, progress * 2000); // Adjust flyTo speed (in milliseconds)
 
-    if (progress < 1) {
-      requestAnimationFrame(animate);
-    }
-  }
+            if (progress < 1) {
+              requestAnimationFrame(animate);
+            }
+          }
 
-  requestAnimationFrame(animate);
-}
+          requestAnimationFrame(animate);
+        }
 
-// Function to calculate a position along the route based on progress (0-1)
-function 沿着路线定位(route, progress) {
-  // This function requires the Mapbox Directions API response (route)
-  // Implement logic to calculate a point on the route based on progress
-  // Refer to Mapbox Directions API documentation for route object structure
-  // https://docs.mapbox.com/api/navigation/#directions-response
-  
-  // Replace with your implementation to calculate the position based on route geometry
-  return [start[0] + progress * (end[0] - start[0]), start[1] + progress * (end[1] - start[1])];
-}
-
-// Function to calculate the bearing between two points
-function getBearing(from, to) {
-  var lat1 = radians(from[1]);
-  var lat2 = radians(to[1]);
-  var dLon = radians(to[0] - from[0]);
-
-  var y = Math.sin(dLon) * Math.cos(lat2);
-  var x = Math.cos(lat1) * Math.sin(lat2) - Math
-
-    </script>
-</body>
-</html>
+        // Function to calculate a
