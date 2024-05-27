@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapbox Path Animation</title>
+    <title>Mapbox Road Route Animation</title>
     <link href='https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.css' rel='stylesheet' />
     <style>
         body { margin: 0; padding: 0; }
@@ -24,14 +24,21 @@
             zoom: 1
         });
 
-        // Define the coordinates for the path from Ingolstadt to Munich
-        const pathCoordinates = [
-            [11.4237, 48.7656], // Ingolstadt
-            [11.5820, 48.1351]  // Munich
-        ];
+        // Function to get the route from the Directions API
+        async function getRoute(start, end) {
+            const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${start.join(',')};${end.join(',')}?geometries=geojson&access_token=${mapboxgl.accessToken}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            const route = data.routes[0].geometry.coordinates;
+            return route;
+        }
 
-        // Add the path to the map as a GeoJSON line
-        map.on('load', () => {
+        // Add the route to the map
+        map.on('load', async () => {
+            const start = [11.4237, 48.7656]; // Ingolstadt
+            const end = [11.5820, 48.1351]; // Munich
+            const route = await getRoute(start, end);
+
             map.addSource('route', {
                 'type': 'geojson',
                 'data': {
@@ -39,7 +46,7 @@
                     'properties': {},
                     'geometry': {
                         'type': 'LineString',
-                        'coordinates': pathCoordinates
+                        'coordinates': route
                     }
                 }
             });
@@ -58,44 +65,30 @@
                 }
             });
 
-            // Animate the camera along the path
-            animateCamera(pathCoordinates);
+            // Animate the camera along the route
+            animateCamera(route);
         });
 
-        function animateCamera(coordinates) {
-            const start = coordinates[0];
-            const end = coordinates[1];
-
-            const startTime = performance.now();
+        function animateCamera(route) {
+            let index = 0;
             const duration = 1000000; // 10 seconds for the animation
-
-            function frame(time) {
-                const t = (time - startTime) / duration;
-
-                if (t < 1.0) {
-                    // Calculate the current position based on the easing function
-                    const lng = start[0] + t * (end[0] - start[0]);
-                    const lat = start[1] + t * (end[1] - start[1]);
-
-                    // Update the camera position
+            const steps = route.length;
+            const stepTime = duration / steps;
+            
+            function frame() {
+                if (index < steps) {
+                    const point = route[index];
                     map.setFreeCameraOptions({
-                        position: mapboxgl.MercatorCoordinate.fromLngLat([lng, lat], 500),
-                        lookAtPoint: [lng, lat]
+                        position: mapboxgl.MercatorCoordinate.fromLngLat(point, 500),
+                        lookAtPoint: point
                     });
-
-                    // Request the next frame of the animation
-                    requestAnimationFrame(frame);
-                } else {
-                    // Animation complete
-                    map.setFreeCameraOptions({
-                        position: mapboxgl.MercatorCoordinate.fromLngLat(end, 500),
-                        lookAtPoint: end
-                    });
+                    index++;
+                    setTimeout(frame, stepTime);
                 }
             }
 
             // Start the animation
-            requestAnimationFrame(frame);
+            frame();
         }
     </script>
 </body>
