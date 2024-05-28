@@ -44,7 +44,6 @@ body { margin: 0; padding: 0; }
     pointer-events: none; /* Ensure the image does not interfere with map interactions */
     z-index: 999;
 }
-    
 </style>
 </head>
 <body>
@@ -61,7 +60,7 @@ body { margin: 0; padding: 0; }
 mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
 
 // Initialize the animation control variable
-let animationValue = 0.001;
+let animationValue = 0;
 
 // Function to fetch the route coordinates
 const getRoute = async () => {
@@ -98,7 +97,7 @@ const animateCamera = async (map, pitch) => {
             }
         });
 
-        map1.addLayer({
+        map.addLayer({
             id: 'route',
             type: 'line',
             source: 'route',
@@ -112,19 +111,6 @@ const animateCamera = async (map, pitch) => {
             }
         });
 
-            map2.addLayer({
-            id: 'route',
-            type: 'line',
-            source: 'route',
-            layout: {
-                'line-join': 'round',
-                'line-cap': 'round'
-            },
-            paint: {
-                'line-color': 'black',
-                'line-width': 7
-            }
-        });
         const cameraAltitude = 100; // Camera altitude from the ground
 
         let startTime;
@@ -133,8 +119,14 @@ const animateCamera = async (map, pitch) => {
             if (!startTime) startTime = time;
             let elapsedTime = time - startTime;
 
-            // Calculate progress and adjust for animationValue
-            let adjustedDuration = animationValue === 0 ? Infinity : 150000 / animationValue;
+            // Adjust the animation speed based on animationValue
+            const baseDuration = 150000; // Base duration for the full route in milliseconds (150 seconds)
+            let adjustedDuration = baseDuration; // Default duration when animationValue is 1
+
+            if (animationValue > 0) {
+                adjustedDuration = baseDuration / animationValue;
+            }
+
             let progress = elapsedTime / adjustedDuration;
 
             // Reset animation when it reaches the end
@@ -201,7 +193,7 @@ map2.on('style.load', () => {
 // Update animation value periodically for demonstration purposes
 setInterval(() => {
     // Simulate variable change for demonstration
-    animationValue = (animationValue + 10) % 160; // Cycle between 0 and 150
+    animationValue = (animationValue + 1) % 160; // Cycle between 0 and 150
     console.log('Animation Value:', animationValue);
 }, 1000);
 
