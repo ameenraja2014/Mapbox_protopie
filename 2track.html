@@ -60,7 +60,7 @@ body { margin: 0; padding: 0; }
 mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
 
 // Initialize the animation control variable
-let animationValue = 1000;
+let animationValue = 10;
 
 // Function to fetch the route coordinates
 const getRoute = async () => {
@@ -211,7 +211,7 @@ function setAnimationValue(value) {
 }
 
 // Example: Set different values for testing
-setAnimationValue(1); // Set the animation value to 1 for testing
+setAnimationValue(animationValue); // Set the animation value to 1 for testing
 // setAnimationValue(5); // Uncomment to set the animation value to 5
 // setAnimationValue(10); // Uncomment to set the animation value to 10
 
