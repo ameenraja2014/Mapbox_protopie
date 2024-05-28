@@ -174,10 +174,12 @@ const animateCamera = async (map, pitch) => {
 
             map.jumpTo(cameraOptions);
 
-            requestAnimationFrame(animate);
+           requestAnimationFrame(loop);
         }
 
-    //    animate(0); // Start the animation
+        loop();
+    }
+    animate(0); // Start the animation
     });
 };
 
