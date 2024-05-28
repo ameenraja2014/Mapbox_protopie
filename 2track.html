@@ -74,7 +74,7 @@ const getRoute = async () => {
 };
 
 // Function to animate the camera along the route
-const animateCamera = async (map, pitch) => {
+const animateCamera = async (map, pitch, variable) => {
     const route = await getRoute();
     if (!route) {
         console.error('No route data available.');
@@ -85,10 +85,8 @@ const animateCamera = async (map, pitch) => {
 
     // Define animation parameters
     let startTime;
-    let animationSpeed = 0.00001; // Initial animation speed (adjust as needed)
     let animationPaused = false; // Variable to control animation pause/resume
     let pausePointDistance = 5000; // Distance along the route to pause the animation (in meters)
-    let variable = 100; // Your variable to control the animation speed (initial value)
 
     function animate(time) {
         if (!startTime) startTime = time;
@@ -172,5 +170,6 @@ map2.on('style.load', () => {
     map2.setConfigProperty('basemap', 'lightPreset', 'night');
 });
 
-animateCamera(map1, 75); // Animate first map with pitch 120
-animateCamera(map2, 45); // Animate second
+// Adjust the variable to control the animation speed
+animateCamera(map1, 75, 100); // Animate first map with pitch 75 and variable 100
+animateCamera(map2, 45, 100); // Animate second map with pitch 45 and variable 
