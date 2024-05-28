@@ -97,17 +97,17 @@ const animateCamera = async (map, pitch) => {
     }
 
     const routeLength = turf.length(turf.lineString(route)); // Calculate the length of the route
+    const animationDuration = 150000; // Animation duration in milliseconds (30 seconds)
 
-    function animate(time) {
+    const animate = (time) => {
         let startTime = time;
 
-        function loop() {
+        const loop = () => {
             const elapsedTime = time - startTime;
-            let progress = elapsedTime / animationDuration;
+            const progress = elapsedTime / animationDuration;
 
             if (progress > 1) {
                 startTime = time;
-                progress = 0;
             }
 
             const distanceAlongRoute = progress * routeLength;
@@ -126,15 +126,13 @@ const animateCamera = async (map, pitch) => {
             map.jumpTo(cameraOptions);
 
             requestAnimationFrame(loop);
-        }
+        };
 
         loop();
-    }
+    };
 
     animate(0);
 };
-
-const animationDuration = 150000; // Animation duration in milliseconds (30 seconds)
 
 animateCamera(map1, 120); // Animate first map with pitch 120
 animateCamera(map2, 45); // Animate second map with pitch 0
