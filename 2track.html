@@ -154,8 +154,9 @@ const animateCamera = async (map, pitch) => {
             const progress = elapsedTime / animationDuration;
 
             if (progress > 1) {
-                console.log('Animation finished.');
-                return;
+                 // Reset the animation
+                startTime = time;
+                progress = 0;
             }
 
             const distanceAlongRoute = progress * routeLength;
