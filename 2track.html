@@ -64,6 +64,39 @@ map2.on('style.load', () => {
     map2.setConfigProperty('basemap', 'lightPreset', 'night');
 });
 
+
+// Add the PNG image to the map
+    map2.loadImage('https://ameenraja2014.github.io/Mapbox_protopie/arrow.png', (error, image) => {
+        if (error) throw error;
+        map2.addImage('center-icon', image);
+
+        // Add the image as a layer
+        map2.addLayer({
+            id: 'center-icon-layer',
+            type: 'symbol',
+            source: {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: [{
+                        type: 'Feature',
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [11.431672, 48.766847] // Center coordinates
+                        }
+                    }]
+                }
+            },
+            layout: {
+                'icon-image': 'center-icon',
+                'icon-size': 1,
+                'icon-allow-overlap': true
+            }
+        });
+    });
+});
+
+    
 // Function to fetch the route coordinates
 const getRoute = async () => {
     try {
