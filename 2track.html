@@ -99,7 +99,7 @@ const animateCamera = async (map, pitch) => {
             }
         });
 
-        map.addLayer({
+          map1.addLayer({
             id: 'route',
             type: 'line',
             source: 'route',
@@ -110,6 +110,21 @@ const animateCamera = async (map, pitch) => {
             paint: {
                 'line-color': 'blue',
                 'line-width': 50
+            }
+        });
+
+        
+        map2.addLayer({
+            id: 'route',
+            type: 'line',
+            source: 'route',
+            layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
+            paint: {
+                'line-color': 'black',
+                'line-width': 10
             }
         });
 
@@ -151,7 +166,7 @@ const animateCamera = async (map, pitch) => {
 };
 
 animateCamera(map1, 120); // Animate first map with pitch 120
-animateCamera(map2, 0); // Animate second map with pitch 0
+animateCamera(map2, 45); // Animate second map with pitch 0
 </script>
 
 </body>
