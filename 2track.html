@@ -23,12 +23,24 @@ body { margin: 0; padding: 0; }
 #map2 .mapboxgl-canvas {
     border-radius: 20%;
 }
+
+    #center-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    transform: translate(-50%, -50%);
+    pointer-events: none; /* Ensure the image does not interfere with map interactions */
+}
 </style>
 </head>
 <body>
 
 <div id="map1"></div>
-<div id="map2"></div>
+<div id="map2">
+    <img id="center-icon" src="https://ameenraja2014.github.io/Mapbox_protopie/arrow.png" alt="Center Icon">
+</div>
 
 <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 <script>
