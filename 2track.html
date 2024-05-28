@@ -82,7 +82,8 @@ const animateCamera = async (map, pitch) => {
             }
         });
 
-        map.addLayer({
+       
+          map1.addLayer({
             id: 'route',
             type: 'line',
             source: 'route',
@@ -96,8 +97,23 @@ const animateCamera = async (map, pitch) => {
             }
         });
 
+        
+        map2.addLayer({
+            id: 'route',
+            type: 'line',
+            source: 'route',
+            layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
+            paint: {
+                'line-color': 'black',
+                'line-width': 7
+            }
+        });
+
         const animationDuration = 150000; // Animation duration in milliseconds (30 seconds)
-        const cameraAltitude = 500; // Camera altitude from the ground
+        const cameraAltitude = 5000; // Camera altitude from the ground
 
         let startTime;
 
