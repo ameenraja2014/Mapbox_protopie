@@ -34,11 +34,25 @@ body { margin: 0; padding: 0; }
     pointer-events: none; /* Ensure the image does not interfere with map interactions */
     z-index: 999;
 }
+
+#center-car {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    transform: translate(-50%, -50%);
+    pointer-events: none; /* Ensure the image does not interfere with map interactions */
+    z-index: 999;
+}
+    
 </style>
 </head>
 <body>
 
-<div id="map1"></div>
+<div id="map1">
+    <img id="center-car" src="https://ameenraja2014.github.io/Mapbox_protopie/car.png" alt="Center car">
+</div>
 <div id="map2">
     <img id="center-icon" src="https://ameenraja2014.github.io/Mapbox_protopie/arrow.png" alt="Center Icon">
 </div>
