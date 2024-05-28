@@ -60,7 +60,7 @@ body { margin: 0; padding: 0; }
 mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
 
 // Initialize the animation control variable
-let animationValue = 100;
+let animationValue = 1000;
 
 // Function to fetch the route coordinates
 const getRoute = async () => {
@@ -97,7 +97,7 @@ const animateCamera = async (map, pitch) => {
             }
         });
 
-        map.addLayer({
+        map1.addLayer({
             id: 'route',
             type: 'line',
             source: 'route',
@@ -108,6 +108,20 @@ const animateCamera = async (map, pitch) => {
             paint: {
                 'line-color': 'blue',
                 'line-width': 50
+            }
+        });
+
+         map2.addLayer({
+            id: 'route',
+            type: 'line',
+            source: 'route',
+            layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
+            paint: {
+                'line-color': 'black',
+                'line-width': 7
             }
         });
 
