@@ -23,15 +23,14 @@ body { margin: 0; padding: 0; }
 #map2 .mapboxgl-canvas {
     border-radius: 20%;
 }
-
-    #center-icon {
+#center-icon {
     position: absolute;
     top: 50%;
     left: 50%;
     width: 20px;
     height: 20px;
     transform: translate(-50%, -50%);
-    pointer-events: none; /* Ensure the image does not interfere with map interactions */
+    pointer-events: none;
     z-index: 999;
 }
 </style>
@@ -77,8 +76,6 @@ map2.on('style.load', () => {
     map2.setConfigProperty('basemap', 'lightPreset', 'night');
 });
 
-
-    
 // Function to fetch the route coordinates
 const getRoute = async () => {
     try {
@@ -101,60 +98,14 @@ const animateCamera = async (map, pitch) => {
 
     const routeLength = turf.length(turf.lineString(route)); // Calculate the length of the route
 
-    map.on('load', () => {
-        map.addSource('route', {
-            type: 'geojson',
-            data: {
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                    type: 'LineString',
-                    coordinates: route
-                }
-            }
-        });
+    function animate(time) {
+        let startTime = time;
 
-          map1.addLayer({
-            id: 'route',
-            type: 'line',
-            source: 'route',
-            layout: {
-                'line-join': 'round',
-                'line-cap': 'round'
-            },
-            paint: {
-                'line-color': 'blue',
-                'line-width': 50
-            }
-        });
-
-        
-        map2.addLayer({
-            id: 'route',
-            type: 'line',
-            source: 'route',
-            layout: {
-                'line-join': 'round',
-                'line-cap': 'round'
-            },
-            paint: {
-                'line-color': 'black',
-                'line-width': 7
-            }
-        });
-
-        const animationDuration = 150000; // Animation duration in milliseconds (30 seconds)
-        const cameraAltitude = 500; // Camera altitude from the ground
-
-        let startTime;
-
-        function animate(time) {
-            if (!startTime) startTime = time;
+        function loop() {
             const elapsedTime = time - startTime;
-            const progress = elapsedTime / animationDuration;
+            let progress = elapsedTime / animationDuration;
 
             if (progress > 1) {
-                 // Reset the animation
                 startTime = time;
                 progress = 0;
             }
@@ -174,14 +125,16 @@ const animateCamera = async (map, pitch) => {
 
             map.jumpTo(cameraOptions);
 
-           requestAnimationFrame(loop);
+            requestAnimationFrame(loop);
         }
 
         loop();
     }
-    animate(0); // Start the animation
-    });
+
+    animate(0);
 };
+
+const animationDuration = 150000; // Animation duration in milliseconds (30 seconds)
 
 animateCamera(map1, 120); // Animate first map with pitch 120
 animateCamera(map2, 45); // Animate second map with pitch 0
