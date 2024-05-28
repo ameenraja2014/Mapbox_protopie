@@ -2,28 +2,29 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Animate the camera along a road route with variable speed</title>
+<title>Animate the camera along a road route</title>
 <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=yes">
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
-<script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 <style>
 body { margin: 0; padding: 0; }
-#map1, #map2 {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 50%;
-}
+#map1 { position: absolute; top: 0; bottom: 0; width: 100%; }
 #map2 {
-    left: 50%;
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    border-radius: 20%;
+    top: 20px;
+    left: 20px;
+    border: 4px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
 }
-.map-container {
-    position: relative;
-    width: 100%;
-    height: 100%;
+#map2 .mapboxgl-canvas {
+    border-radius: 20%;
 }
-#center-icon, #center-car {
+
+#center-icon {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -33,21 +34,30 @@ body { margin: 0; padding: 0; }
     pointer-events: none; /* Ensure the image does not interfere with map interactions */
     z-index: 999;
 }
+
 #center-car {
+    position: absolute;
+    top: 50%;
+    left: 50%;
     width: 150px;
     height: 150px;
+    transform: translate(-50%, -50%);
+    pointer-events: none; /* Ensure the image does not interfere with map interactions */
+    z-index: 999;
 }
+    
 </style>
 </head>
 <body>
 
-<div id="map1" class="map-container">
+<div id="map1">
     <img id="center-car" src="https://ameenraja2014.github.io/Mapbox_protopie/car.png" alt="Center car">
 </div>
-<div id="map2" class="map-container">
+<div id="map2">
     <img id="center-icon" src="https://ameenraja2014.github.io/Mapbox_protopie/arrow.png" alt="Center Icon">
 </div>
 
+<script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 <script>
 mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
 
@@ -64,7 +74,7 @@ const getRoute = async () => {
 };
 
 // Function to animate the camera along the route
-const animateCamera = async (map, pitch, variable) => {
+const animateCamera = async (map, pitch) => {
     const route = await getRoute();
     if (!route) {
         console.error('No route data available.');
@@ -73,21 +83,58 @@ const animateCamera = async (map, pitch, variable) => {
 
     const routeLength = turf.length(turf.lineString(route)); // Calculate the length of the route
 
-    // Define animation parameters
-    let startTime;
-    let animationPaused = false; // Variable to control animation pause/resume
-    let pausePointDistance = 5000; // Distance along the route to pause the animation (in meters)
+    map.on('load', () => {
+        map.addSource('route', {
+            type: 'geojson',
+            data: {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                    type: 'LineString',
+                    coordinates: route
+                }
+            }
+        });
 
-    function animate(time) {
-        if (!startTime) startTime = time;
-        let elapsedTime = time - startTime;
+       
+          map1.addLayer({
+            id: 'route',
+            type: 'line',
+            source: 'route',
+            layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
+            paint: {
+                'line-color': 'blue',
+                'line-width': 50
+            }
+        });
 
-        // Adjust animation speed based on the variable
-        let effectiveAnimationDuration = animationDuration / variable;
+        
+        map2.addLayer({
+            id: 'route',
+            type: 'line',
+            source: 'route',
+            layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
+            paint: {
+                'line-color': 'black',
+                'line-width': 7
+            }
+        });
 
-        // Check if animation is paused at the pause point
-        if (!animationPaused) {
-            let progress = elapsedTime / effectiveAnimationDuration;
+        const animationDuration = 150000; // Animation duration in milliseconds (30 seconds)
+        const cameraAltitude = 100; // Camera altitude from the ground
+
+        let startTime;
+
+        function animate(time) {
+            if (!startTime) startTime = time;
+            let elapsedTime = time - startTime;
+            let progress = elapsedTime / animationDuration;
 
             // Reset animation when it reaches the end
             if (progress > 1) {
@@ -97,14 +144,8 @@ const animateCamera = async (map, pitch, variable) => {
             }
 
             const distanceAlongRoute = progress * routeLength;
-
-            // Check if the distance along the route is greater than the pause point
-            if (distanceAlongRoute >= pausePointDistance || variable <= 0) {
-                animationPaused = true; // Pause the animation
-                return;
-            }
-
             const pointOnRoute = turf.along(turf.lineString(route), distanceAlongRoute);
+
             const nextPoint = turf.along(turf.lineString(route), distanceAlongRoute + 0.001);
             const bearing = turf.bearing(pointOnRoute, nextPoint);
 
@@ -116,18 +157,12 @@ const animateCamera = async (map, pitch, variable) => {
             };
 
             map.jumpTo(cameraOptions);
+
+            requestAnimationFrame(animate);
         }
 
-        if (animationPaused) {
-            // Handle animation pause here
-            // You can update the pausePointDistance variable based on your logic to resume the animation from a different point
-            // Set animationPaused back to false to resume the animation
-        }
-
-        requestAnimationFrame(animate);
-    }
-
-    animate(0); // Start the animation
+        animate(0); // Start the animation
+    });
 };
 
 // First map
@@ -160,9 +195,8 @@ map2.on('style.load', () => {
     map2.setConfigProperty('basemap', 'lightPreset', 'night');
 });
 
-// Adjust the variable to control the animation speed
-animateCamera(map1, 75, 100); // Animate first map with pitch 75 and variable 100
-animateCamera(map2, 45, 100); // Animate second map with pitch 45 and variable 100
+animateCamera(map1, 75); // Animate first map with pitch 120
+animateCamera(map2, 45); // Animate second map with pitch 0
 </script>
 
 </body>
