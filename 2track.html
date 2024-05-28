@@ -54,7 +54,7 @@ const map2 = new mapboxgl.Map({
     container: 'map2',
     style: 'mapbox://styles/mapbox/standard',
     center: [11.431672, 48.766847], // Starting point (Ingolstadt)
-    zoom: 25,
+    zoom: 5,
     pitch: 60, // Initial pitch for 3D effect
     bearing: 0, // Initial bearing (North)
     antialias: true // Smooth edges
@@ -113,7 +113,7 @@ const animateCamera = async (map, pitch) => {
             }
         });
 
-        const animationDuration = 30000; // Animation duration in milliseconds (30 seconds)
+        const animationDuration = 300000; // Animation duration in milliseconds (30 seconds)
         const cameraAltitude = 50; // Camera altitude from the ground
 
         let startTime;
