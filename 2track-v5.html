@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Animate the camera along a road route</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=yes">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
+<style>
+body { margin: 0; padding: 0; }
+#map1 { position: absolute; top: 0; bottom: 0; width: 2700px; left:1px; height:1126px; }
+#map2 {
+    position: absolute;
+    width: 2700px;
+    height: 1126px;
+    border-radius: 2%;
+    right: 1px;
+    border: 0px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+#map2 .mapboxgl-canvas {
+    border-radius: 0%;
+}
+
+#center-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    transform: translate(-50%, -50%);
+    pointer-events: none; /* Ensure the image does not interfere with map interactions */
+    z-index: 999;
+}
+
+#center-car {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 150px;
+    height: 150px;
+    transform: translate(-50%, -50%);
+    pointer-events: none; /* Ensure the image does not interfere with map interactions */
+    z-index: 999;
+}
+</style>
+</head>
+<body>
+
+<div id="map1">
+    <img id="center-car" src="https://ameenraja2014.github.io/Mapbox_protopie/car.png" alt="Center car">
+</div>
+<div id="map2">
+    <img id="center-icon" src="https://ameenraja2014.github.io/Mapbox_protopie/arrow.png" alt="Center Icon">
+</div>
+
+<script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoiYW1lZW5yYWphMjAxNCIsImEiOiJjbHdocHd3dzcwY3Q5MmlueW1oZjl6MHA2In0.HrlG6kGHN1Fi2tHpPiuBeg';
+
+// Initialize the animation control variable
+let animationValue = 1;
+
+// WebSocket connection to receive real-time data from ProtoPie Connect
+const socket = new WebSocket('ws://localhost:8080');
+
+socket.addEventListener('open', function (event) {
+    console.log('Connected to ProtoPie Connect WebSocket server');
+});
+
+socket.addEventListener('message', function (event) {
+    console.log('Message from ProtoPie Connect: ', event.data);
+    setAnimationValue(parseFloat(event.data));
+});
+
+socket.addEventListener('close', function (event) {
+    console.log('Disconnected from ProtoPie Connect WebSocket server');
+});
+
+socket.addEventListener('error', function (event) {
+    console.error('WebSocket error: ', event);
+});
+
+// Function to set the animation value
+function setAnimationValue(value) {
+    animationValue = value;
+    console.log('Animation Value:', animationValue);
+}
+
+// Function to fetch the route coordinates
+const getRoute = async () => {
+    try {
+        const response = await fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/11.431672%2C48.766847%3B11.429286%2C48.753998?alternatives=true&geometries=geojson&language=en&overview=full&steps=true&access_token=${mapboxgl.accessToken}`);
+        const data = await response.json();
+        const route = data.routes[0].geometry.coordinates;
+        return route;
+    } catch (error) {
+        console.error('Error fetching route:', error);
+    }
+};
+
+// Function to animate the camera along the route
+const animateCamera = async (map, pitch) => {
+    const route = await getRoute();
+    if (!route) {
+        console.error('No route data available.');
+        return;
+    }
+
+    const routeLength = turf.length(turf.lineString(route)); // Calculate the length of the route
+
+    map.on('load', () => {
+        map.addSource('route', {
+            type: 'geojson',
+            data: {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                    type: 'LineString',
+                    coordinates: route
+                }
+            }
+        });
+
+        map1.addLayer({
+            id: 'route',
+            type: 'line',
+            source: 'route',
+            layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
+            paint: {
+                'line-color': 'blue',
+                'line-width': 50
+            }
+        });
+
+        map2.addLayer({
+            id: 'route',
+            type: 'line',
+            source: 'route',
+            layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
+            paint: {
+                'line-color': 'black',
+                'line-width': 7
+            }
+        });
+
+        const cameraAltitude = 100; // Camera altitude from the ground
+
+        let startTime;
+
+        function animate(time) {
+            if (!startTime) startTime = time;
+            let elapsedTime = time - startTime;
+
+            // Adjust the animation speed based on animationValue
+            const baseDuration = 150000; // Base duration for the full route in milliseconds (150 seconds)
+            let adjustedDuration = baseDuration; // Default duration when animationValue is 1
+
+            if (animationValue > 0) {
+                adjustedDuration = baseDuration / animationValue;
+            }
+
+            let progress = elapsedTime / adjustedDuration;
+
+            // Reset animation when it reaches the end
+            if (progress > 1) {
+                startTime = time;
+                elapsedTime = 0;
+                progress = 0;
+            }
+
+            const distanceAlongRoute = progress * routeLength;
+            const pointOnRoute = turf.along(turf.lineString(route), distanceAlongRoute);
+
+            const nextPoint = turf.along(turf.lineString(route), distanceAlongRoute + 0.001);
+            const bearing = turf.bearing(pointOnRoute, nextPoint);
+
+            const cameraOptions = {
+                center: pointOnRoute.geometry.coordinates,
+                bearing: bearing,
+                pitch: pitch,
+                zoom: map.getZoom(),
+            };
+
+            map.jumpTo(cameraOptions);
+
+            if (animationValue !== 0) {
+                requestAnimationFrame(animate);
+            }
+        }
+
+        animate(0); // Start the animation
+    });
+};
+
+// First map
+const map1 = new mapboxgl.Map({
+    container: 'map1',
+    style: 'mapbox://styles/mapbox/standard',
+    center: [11.431672, 48.766847], // Starting point (Ingolstadt)
+    zoom: 20,
+    pitch: 60, // Initial pitch for 3D effect
+    bearing: 0, // Initial bearing (North)
+    antialias: true // Smooth edges
+});
+
+map1.on('style.load', () => {
+    map1.setConfigProperty('basemap', 'lightPreset', 'night');
+});
+
+// Second map
+const map2 = new mapboxgl.Map({
+    container: 'map2',
+    style: 'mapbox://styles/mapbox/standard',
+    center: [11.431672, 48.766847], // Starting point (Ingolstadt)
+    zoom: 15,
+    pitch: 60, // Initial pitch for 3D effect
+    bearing: 0, // Initial bearing (North)
+    antialias: true // Smooth edges
+});
+
+map2.on('style.load', () => {
+    map2.setConfigProperty('basemap', 'lightPreset', 'night');
+});
+
+animateCamera(map1, 75); // Animate first map with pitch 75
+animateCamera(map2, 45); // Animate second map with pitch 45
+</script>
+
+</body>
+</html>
