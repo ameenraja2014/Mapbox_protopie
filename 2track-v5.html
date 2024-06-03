@@ -13,8 +13,9 @@ body { margin: 0; padding: 0; }
     position: absolute;
     width: 2700px;
     height: 1126px;
-    border-radius: 2%;
+    border-radius: 0%;
     right: 1px;
+	visible: 50%;
     border: 0px solid rgba(255, 255, 255, 0.5);
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     overflow: hidden;
@@ -27,8 +28,8 @@ body { margin: 0; padding: 0; }
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 20px;
-    height: 20px;
+    width: 100px;
+    height: 100px;
     transform: translate(-50%, -50%);
     pointer-events: none; /* Ensure the image does not interfere with map interactions */
     z-index: 999;
@@ -38,8 +39,8 @@ body { margin: 0; padding: 0; }
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 150px;
-    height: 150px;
+    width: 500px;
+    height: 500px;
     transform: translate(-50%, -50%);
     pointer-events: none; /* Ensure the image does not interfere with map interactions */
     z-index: 999;
@@ -133,7 +134,7 @@ const animateCamera = async (map, pitch) => {
             },
             paint: {
                 'line-color': 'blue',
-                'line-width': 50
+                'line-width': 100
             }
         });
 
@@ -147,7 +148,7 @@ const animateCamera = async (map, pitch) => {
             },
             paint: {
                 'line-color': 'black',
-                'line-width': 7
+                'line-width': 20
             }
         });
 
@@ -205,7 +206,7 @@ const map1 = new mapboxgl.Map({
     container: 'map1',
     style: 'mapbox://styles/mapbox/standard',
     center: [11.431672, 48.766847], // Starting point (Ingolstadt)
-    zoom: 20,
+    zoom: 50,
     pitch: 60, // Initial pitch for 3D effect
     bearing: 0, // Initial bearing (North)
     antialias: true // Smooth edges
@@ -220,7 +221,7 @@ const map2 = new mapboxgl.Map({
     container: 'map2',
     style: 'mapbox://styles/mapbox/standard',
     center: [11.431672, 48.766847], // Starting point (Ingolstadt)
-    zoom: 15,
+    zoom: 18,
     pitch: 60, // Initial pitch for 3D effect
     bearing: 0, // Initial bearing (North)
     antialias: true // Smooth edges
