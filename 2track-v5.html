@@ -206,7 +206,7 @@ const map1 = new mapboxgl.Map({
     container: 'map1',
     style: 'mapbox://styles/mapbox/standard',
     center: [11.431672, 48.766847], // Starting point (Ingolstadt)
-    zoom: 50,
+    zoom: 22,
     pitch: 60, // Initial pitch for 3D effect
     bearing: 0, // Initial bearing (North)
     antialias: true // Smooth edges
@@ -231,7 +231,7 @@ map2.on('style.load', () => {
     map2.setConfigProperty('basemap', 'lightPreset', 'night');
 });
 
-animateCamera(map1, 85); // Animate first map with pitch 75
+animateCamera(map1, 80); // Animate first map with pitch 75
 animateCamera(map2, 45); // Animate second map with pitch 45
 </script>
 
